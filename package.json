@@ -1,0 +1,19 @@
+{
+  "name": "dotai-collage-studio",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "Local-first four-photo collage editor with editable frames and slanted masks",
+  "engines": { "node": "^22.22.2 || ^24.15.0 || >=26.0.0" },
+  "scripts": {
+    "build": "node scripts/build.cjs",
+    "test": "node scripts/test.cjs",
+    "check:privacy": "node scripts/check-privacy.cjs",
+    "check": "npm run build && npm test && npm run check:privacy"
+  },
+  "devDependencies": {
+    "@napi-rs/canvas": "0.1.100",
+    "jsdom": "30.1.0",
+    "sharp": "0.35.4"
+  }
+}
