@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict');
+require('../src/collage-core.js');const C=globalThis.CollageCore;
+const s=C.defaults();
+assert.equal(s.bg,'#0B63F6');assert.equal(s.brand.logo,false);assert.equal(s.brand.title,'');assert.equal(s.brand.footer,false);
+s.slots[0].mask=C.presetMask('triangle');
+let b=C.frameBoxes(s)[0];
+assert(!C.hit(b,{x:b.x+2,y:b.y+2}));
+assert(C.hit(b,{x:b.x+b.w*.5,y:b.y+b.h*.7}));
+s.slots[0].frame={x:120,y:160,w:600,h:720};b=C.frameBoxes(s)[0];assert.equal(b.x,120);assert.equal(b.h,720);
+assert(C.validPolygon([[.2,0],[1,1],[0,1]]));
+assert(!C.validPolygon([[0,0],[1,1],[1,0],[0,1]]),'Self-crossing shape rejected');
+assert(!C.validPolygon([[0,0],[.001,0],[0,.001]]),'Collapsed shape rejected');
+for(const name of ['rect','triangle','diagonal','diamond','hexagon'])assert(C.validPolygon(C.presetMask(name).points));
+console.log('PASS: DotAI blue defaults; movable frames; polygon hit tests; editable valid masks; collapsed and crossed polygons rejected.');
