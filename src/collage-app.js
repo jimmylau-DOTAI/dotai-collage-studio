@@ -81,7 +81,7 @@
     b.innerHTML=`<svg viewBox="0 0 100 100" aria-hidden="true">${rects}</svg><span>${l.name}</span>`;
     b.onclick=()=>{remember();state.layout=l.id;state.slots.forEach(s=>{delete s.frame;delete s.mask;delete s.maskPreset;});mode=l.id==='cut-grid'?'cut':'crop';hideSelection=false;refresh();say('已套用版式；相框仍可移位及改大小，做錯可復原');};$('layouts').append(b);
   });
-  $('ratio').addEventListener('change',e=>{if(!['1:1','4:3'].includes(e.target.value))return;remember();const old=C.size(state);state.ratio=e.target.value;const next=C.size(state);state.slots.forEach(s=>{if(s.frame){s.frame.x*=next.w/old.w;s.frame.w*=next.w/old.w;s.frame.y*=next.h/old.h;s.frame.h*=next.h/old.h;}});refresh();say('已切換尺寸；原相按比例裁切，唔會拉闊變形');});
+  $('ratio').addEventListener('change',e=>{if(!['1:1','3:4'].includes(e.target.value))return;remember();const old=C.size(state);state.ratio=e.target.value;const next=C.size(state);state.slots.forEach(s=>{if(s.frame){s.frame.x*=next.w/old.w;s.frame.w*=next.w/old.w;s.frame.y*=next.h/old.h;s.frame.h*=next.h/old.h;}});refresh();say('已切換尺寸；原相按比例裁切，唔會拉闊變形');});
   function relinkCuts(){state.slots.forEach(s=>{delete s.frame;delete s.mask;delete s.maskPreset;});}
   for(const key of ['top','bottom','left','right']){let started=false;$('cut-'+key).addEventListener('input',e=>{if(!started){remember();started=true;relinkCuts();}state.cut[key]=C.clamp(Number(e.target.value)/100,.15,.85);mode='cut';hideSelection=false;controls();draw();save();});$('cut-'+key).addEventListener('change',()=>{started=false;});$('cut-'+key).addEventListener('blur',()=>{started=false;});}
   $('cut-straight').onclick=()=>{remember();relinkCuts();state.cut={top:.5,bottom:.5,left:.5,right:.5};mode='cut';refresh();};

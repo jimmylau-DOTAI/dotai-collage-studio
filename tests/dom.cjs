@@ -40,7 +40,7 @@ const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole,beforeParse(wi
   assert.equal(document.getElementById('export-top').disabled,false,'Editor must finish initialization');
   assert.equal(document.querySelectorAll('.photo').length,4);
   assert.equal(document.querySelectorAll('.layout').length,29);
-  assert.deepEqual([...document.getElementById('ratio').options].map(o=>o.value),['1:1','4:3']);
+  assert.deepEqual([...document.getElementById('ratio').options].map(o=>o.value),['1:1','3:4']);
   assert.equal(document.getElementById('bg-color').value,'#0b63f6');
   const palette=['#0B63F6','#FFFFFF','#F5F8FF','#00345C'];
   assert.deepEqual([...document.querySelectorAll('.swatch')].map(b=>b.dataset.color),palette);
@@ -83,10 +83,10 @@ const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole,beforeParse(wi
   const cx=18+.43*(1080-36);pointer('pointerdown',cx,18);pointer('pointermove',18+.3*(1080-36),18);pointer('pointerup',18+.3*(1080-36),18);assert.equal(el('cut-top').value,'30');
   el('undo').click();assert.equal(el('cut-top').value,'43');el('redo').click();assert.equal(el('cut-top').value,'30');
   const startX=el('frame-x').value;change('frame-x','90');assert.equal(el('frame-x').value,'90');el('undo').click();assert.equal(el('frame-x').value,startX);
-  change('ratio','4:3');assert.equal(canvas.width,1440);assert.equal(canvas.height,1080);
-  const wide=await download();const wideMeta=await sharp(wide.bytes).metadata();assert.equal(wideMeta.width,1440);assert.equal(wideMeta.height,1080);
-  fs.writeFileSync(path.join(__dirname,'../artifacts/slanted-example-4x3.jpg'),wide.bytes);
+  change('ratio','3:4');assert.equal(canvas.width,1080);assert.equal(canvas.height,1440);
+  const portrait=await download();const portraitMeta=await sharp(portrait.bytes).metadata();assert.equal(portraitMeta.width,1080);assert.equal(portraitMeta.height,1440);
+  fs.writeFileSync(path.join(__dirname,'../artifacts/slanted-example-3x4.jpg'),portrait.bytes);
   el('undo').click();assert.equal(el('ratio').value,'1:1');assert.equal(canvas.width,1080);
   assert.equal(errors.length,0);
-  console.log('PASS: 4 DotAI palette pixel checks; custom color and palette undo/redo; 29 layouts; ONLY 1:1 and 4:3; polygon drag; frame move/resize; shared slanted endpoint drag; undo/redo; both exact JPEG sizes; handles excluded.');
+  console.log('PASS: 4 DotAI palette pixel checks; custom color and palette undo/redo; 29 layouts; ONLY 1:1 and 3:4; polygon drag; frame move/resize; shared slanted endpoint drag; undo/redo; both exact JPEG sizes; handles excluded.');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>dom.window.close());

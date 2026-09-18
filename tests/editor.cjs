@@ -18,10 +18,11 @@ class Element{
   addEventListener(type,f){(this.events[type]??=[]).push(f);}
   async fire(type,e={}){e.target??=this;e.preventDefault??=()=>{};for(const f of this.events[type]||[])await f(e);}
   async click(){this.clicked++;return this.onclick?.({target:this});}
-  focus(){}setPointerCapture(){}getBoundingClientRect(){return {left:0,top:0,width:540,height:675};}
+  focus(){}setPointerCapture(){}getBoundingClientRect(){return {left:0,top:0,width:540,height:540};}
 }
 class Canvas extends Element{
-  constructor(){super('canvas');this.native=createCanvas(1080,1350);}
+  constructor(){super('canvas');this.native=createCanvas(1080,1080);}
+  getBoundingClientRect(){return {left:0,top:0,width:540,height:540*this.height/this.width};}
   get width(){return this.native.width;}set width(v){this.native.width=v;}
   get height(){return this.native.height;}set height(v){this.native.height=v;}
   getContext(type){return this.native.getContext(type);}
@@ -33,7 +34,7 @@ class Canvas extends Element{
   const logos={};
   for(const layout of C.layouts)for(const margin of [0,18,64])for(const gap of [0,12,48]){
     const boxes=C.boxes(layout.id,margin,gap);assert.equal(boxes.length,4);
-    for(const b of boxes){assert(b.x>=0&&b.y>=0&&b.w>0&&b.h>0&&b.x+b.w<=1080.001&&b.y+b.h<=1350.001);}
+    for(const b of boxes){assert(b.x>=0&&b.y>=0&&b.w>0&&b.h>0&&b.x+b.w<=1080.001&&b.y+b.h<=1080.001);}
     if(!layout.overlap)for(let i=0;i<4;i++)for(let j=i+1;j<4;j++){const a=boxes[i],b=boxes[j];assert(Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x)<.001||Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y)<.001);}
     for(let i=0;i<4;i++)for(const x of [0,.5,1])for(const y of [0,.5,1])for(const zoom of [1,3]){
       const b=boxes[i],g=C.geometry(images[i],b,{x,y,zoom});assert(g.x<=b.x+.001&&g.y<=b.y+.001&&g.x+g.w>=b.x+b.w-.001&&g.y+g.h>=b.y+b.h-.001);
