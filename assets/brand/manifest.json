@@ -1,0 +1,11 @@
+{
+  "assetId": "LOGO-007",
+  "file": "dotai-icon.png",
+  "sourceName": "dotai_logo_icon.png",
+  "sourceSha256": "2747413138e593b3845e4514f70d43bbffd92fbfcae8c6fe1232339cce38bd6e",
+  "derivedSha256": "923d95b80e8f917eb28dd9afa72d3e19b3ad5a506f4024375bc3c5829722234e",
+  "sourceDimensions": [8334, 8334],
+  "derivedDimensions": [256, 256],
+  "transformation": "Proportional resize only; sharp 0.35.4, 256x256 contain, PNG compression level 9; no recoloring or redrawing.",
+  "rights": "Operationally authorized for DotAI brand outputs; formal public redistribution record remains missing. Not covered by a future code licence."
+}

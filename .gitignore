@@ -10,6 +10,7 @@ artifacts/
 *.jpg
 *.jpeg
 *.png
+!assets/brand/dotai-icon.png
 *.webp
 *.heic
 *.pdf

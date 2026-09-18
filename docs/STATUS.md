@@ -1,25 +1,29 @@
-# Foundation handoff — 2026-09-19
+# Product handoff — 2026-09-19
 
-Owner: Jimmy Lau. Repo: `jimmylau-DOTAI/dotai-collage-studio` (private, verified). Base branch: `main`; implementation branch: `codex/open-source-foundation`.
+Owner: Jimmy Lau. Repository: `jimmylau-DOTAI/dotai-collage-studio` (private).
+Current work: `codex/dotai-brand-interface`.
 
-## Verified locally
+## Foundation
 
-- Locked clean installation with `npm ci --ignore-scripts`.
-- `npm run check`: all five suites pass, plus source/index privacy tripwires.
-- Real JPEG output: 1080×1080 and 1440×1080; generated demo preview visually inspected.
-- `npm audit`: zero known advisories returned at verification time (not a security guarantee).
-- Current dependency engine constraints read back from installed jsdom and reflected in package metadata/documentation.
-- Original personal prototype and photographs were not modified.
-- Independent read-only code review found no migration-specific blocker for the first private PR. Two inherited interaction/memory issues are recorded in `ROADMAP.md`; this is not a claim that the editor has no bugs.
+[PR #1](https://github.com/jimmylau-DOTAI/dotai-collage-studio/pull/1) was merged with owner approval. GitHub readback: merged at 2026-09-18 17:17:02 UTC (2026-09-19 Hong Kong), merge commit `ccf528cd5f794f9c9c2df14c4e22e983ffa4f7a4`. The five original suites passed immediately before merging.
 
-## Remote PR
+## Brand interface — implemented, awaiting review
 
-The owner completed the normal GitHub CLI authorization flow and the feature branch was pushed. The previous missing `workflow` scope blocker is resolved; no credentials or device codes are stored here.
+- Navy application shell, official square DotAI icon, white working panels and separate artwork-background controls.
+- Extracted interface CSS; single-file offline build retained.
+- No changes to core geometry or editor state/history logic. The 29 layouts, two ratios and four canvas palette options remain.
+- The exact brand asset is allowlisted by path and SHA-256; personal photos, private paths and generated distributions remain excluded from Git.
+- `npm run check`: all six suites pass, including icon bytes/dimensions, UI contracts, contrast, crop/frame/shape/history and exact JPEG dimensions. `git diff --check` passes.
+- Current changes have not been merged into the main version; there has been no public release or deployment.
 
-[PR #1](https://github.com/jimmylau-DOTAI/dotai-collage-studio/pull/1) is OPEN, from `codex/open-source-foundation` into `main`. Repository visibility was read back as PRIVATE. GitHub Actions is configured for Node 22 and 24; consult the PR checks for the latest commit's live results rather than treating this receipt as a permanent green status.
+## Important limits
 
-No merge, public release or deployment has been performed. The local feature branch is retained for review fixes.
+The automated harness is jsdom plus native Canvas, not Chrome/Safari layout or touch verification. Browser-tool local-file access was blocked during this work; no alternate browser/server route was used to bypass it. Manual visual acceptance remains pending. Do not describe the new interface as browser-tested.
 
-## Next
+No real person's photos are included. Initial photos are generated numbered demos. User photos are processed locally but project save/load is not implemented; unsaved edits disappear on close.
 
-Review the PR and its CI evidence; merge remains the owner's decision. Real-browser acceptance, the inherited interaction/memory fixes and project save/load remain follow-up PRs, not implemented features.
+Inherited shape-mode selection and repeated-upload memory issues remain recorded in `ROADMAP.md`. Brand redistribution rights and code licensing must be resolved before going public.
+
+## Jimmy's next action
+
+Open the newly built `dist/index.html` in Chrome and check the navy header, official square icon and whether moving one photo then pressing Undo behaves as expected. The old personal prototype file is a different artifact and was not overwritten.

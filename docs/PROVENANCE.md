@@ -11,11 +11,15 @@ The 29 layout structures were implemented as geometric coordinates with guidance
 - `scripts/build.cjs` generates four geometric, numbered demo images. It reads no local photograph directories and downloads no images.
 - Built demo images and outputs are ignored. No real person's photograph is included in the source history.
 - User-selected images are processed in browser memory; the user remains responsible for their publication rights.
-- No DotAI logo file is included. Brand names/marks are not implicitly licensed by a future code licence.
+- `assets/brand/dotai-icon.png` is a proportional 256×256 derivative of official asset LOGO-007, the navy square `.ai` icon. Source/derivative SHA-256 and transformation are recorded in `assets/brand/manifest.json`; no source path or internal brand document is included.
+- The mark is authorized for DotAI brand outputs in this private project. Formal public redistribution clearance remains missing. Brand names/marks are not implicitly licensed by a future code licence; clear those rights or remove/replace the branded distribution before public release.
+- The privacy scanner permits only this exact derivative's path and hash, checking both working tree and Git index. It does not allow arbitrary PNGs or personal photographs.
 
 ## Palette
 
-The private prototype's verified palette is preserved: IG accent `#0B63F6`, white `#FFFFFF`, soft web surface `#F5F8FF`, navy icon background `#00345C`; UI action color `#0059FF`. Soft blue/navy are adapted here as background options, not a new company-wide brand standard. Internal source documents are not distributed.
+The application shell adapts the official icon's navy `#00345C` and accent `#3298EF` to this product, following Jimmy's direction. The accent is decoration, not a small-text background. This is not a new company-wide brand standard.
+
+Canvas backgrounds remain independent: IG accent `#0B63F6`, white `#FFFFFF`, soft web surface `#F5F8FF`, navy `#00345C`. The current canvas default remains unchanged. The logo is embedded in the HTML header only, not passed to the Canvas renderer or exported in JPEGs. Internal source documents are not distributed.
 
 ## Before public release
 

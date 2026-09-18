@@ -29,6 +29,7 @@ npm run check
 - 移動相框、右下角拉大小、X／Y／寬／高數值微調。
 - 拉共用斜切端點；或自訂四邊形、多邊形、圓／橢圓。
 - DotAI 藍、白、淺藍、深海藍及自選底色。
+- 深海藍工具介面與官方方形標誌；「作品底色」獨立設定，匯出唔會加標誌。
 - 最近 60 個狀態可復原／重做。JPEG 不含選框、控制點、標題或 Logo。
 
 ## 已知限制
@@ -42,13 +43,14 @@ npm run check
 
 ```sh
 npm run build          # 輸出 dist/index.html
-npm test               # 先有 build，再執行五組測試
+npm test               # 先有 build，再執行六組測試
 npm run check:privacy  # 私人路徑／憑證 pattern 及 staged 檔案檢查
 npm run check          # build + test + privacy
 ```
 
 ```text
-src/       Canvas 幾何、互動邏輯、HTML 模板
+src/       Canvas 幾何、互動邏輯、HTML 模板及介面 CSS
+assets/    限定官方標誌及來源記錄（與日後程式碼授權分開）
 scripts/   可重現建置、測試 runner、資料檢查
 tests/     幾何、互動、像素及 JPEG 輸出驗證
 docs/      規格、來源、路線圖及實作計劃

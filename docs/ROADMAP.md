@@ -2,11 +2,15 @@
 
 Owner: Jimmy Lau. This document records proposed stages, not a background automation.
 
-## PR 1 — Foundation (this branch)
+## PR 1 — Foundation (merged)
 
-Standalone source, generated examples, locked installation, tests, CI and contributor/release documentation. Keep repo private; review before merge.
+Standalone source, generated examples, locked installation, tests, CI and contributor/release documentation. Merged with owner approval on 2026-09-19 (Hong Kong). Repo stays private.
 
-## PR 2 — Real-browser acceptance and interaction fixes
+## Next PR — DotAI product shell (current branch)
+
+Navy application shell, official square logo, independent artwork palette, responsive controls and interface-contract tests. See `brand-interface.md`. Browser visual/interaction acceptance is pending; the first two stages do not establish a finished product.
+
+## Following PR — Real-browser acceptance and interaction fixes
 
 Use generated images only. On Chrome and Safari desktop, then a mobile/touch browser:
 
@@ -25,10 +29,10 @@ Independent foundation review identified two inherited cases to address in this 
 - In custom-shape mode, switching to another photo without an initialized mask can leave the vertex controls empty. Reinitialize or clearly exit shape mode on selection; cover the sequence with a regression test.
 - Replacing photos appends image data to in-memory arrays even after older undo states expire. Review reference-aware cleanup and decoded-image memory bounds; retain undo/redo correctness.
 
-## PR 3 — Save and reopen an editable project
+## Later — Save and reopen an editable project
 
 Versioned local project file containing geometry/palette/images; validate imported schema, dimensions and data limits. Undo/redo must work after import. Explicit save/load; no cloud account needed. Separate privacy/size review before implementation.
 
-## PR 4 — Maintainability and release readiness
+## Later — Maintainability and release readiness
 
 Split crowded source responsibly, remove legacy unreachable branding/layout code with tests, improve accessibility and documentation. Choose licence and complete `PROVENANCE.md` gates before any public v0.1.0 release.

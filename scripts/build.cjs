@@ -1,4 +1,5 @@
-// Generate demo artwork, then build one offline HTML file. No personal assets are read.
+// Generate demo artwork and embed the checked-in official mark in the app shell.
+// No personal photographs or external asset directories are read.
 const fs = require('node:fs');
 const path = require('node:path');
 const {createCanvas, loadImage} = require('@napi-rs/canvas');
@@ -30,6 +31,8 @@ async function demo(index) {
   const preview=createCanvas(1080,1080);
   C.draw(preview.getContext('2d'),await Promise.all(photos.map(p=>loadImage(p.src))),C.defaults());
   const replacements={
+    __EDITOR_CSS__:fs.readFileSync(path.join(root,'src/editor.css'),'utf8'),
+    __BRAND_LOGO__:'data:image/png;base64,'+fs.readFileSync(path.join(root,'assets/brand/dotai-icon.png')).toString('base64'),
     __PREVIEW_DATA__:'data:image/jpeg;base64,'+(await preview.encode('jpeg',88)).toString('base64'),
     __PHOTO_DATA__:JSON.stringify(photos),
     __CORE_JS__:fs.readFileSync(path.join(root,'src/collage-core.js'),'utf8').replace(/<\/script/gi,'<\\/script'),
@@ -37,7 +40,7 @@ async function demo(index) {
   };
   const template=fs.readFileSync(path.join(root,'src/editor.html.template'),'utf8');
   for(const key of Object.keys(replacements))if(template.split(key).length!==2)throw new Error(`Expected exactly one ${key}`);
-  const html=template.replace(/__PREVIEW_DATA__|__PHOTO_DATA__|__CORE_JS__|__APP_JS__/g,key=>replacements[key]);
+  const html=template.replace(/__EDITOR_CSS__|__BRAND_LOGO__|__PREVIEW_DATA__|__PHOTO_DATA__|__CORE_JS__|__APP_JS__/g,key=>replacements[key]);
   fs.mkdirSync(path.join(root,'dist'),{recursive:true});
   fs.writeFileSync(path.join(root,'dist/index.html'),html);
   console.log(`Built dist/index.html (${Buffer.byteLength(html)} bytes, 4 generated demo images)`);
