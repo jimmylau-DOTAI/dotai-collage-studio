@@ -22,12 +22,12 @@
 
 **Interfaces:** Source template consumes `__PREVIEW_DATA__`, `__PHOTO_DATA__`, `__CORE_JS__`, `__APP_JS__`; build produces `dist/index.html`. Tests read this exact output and put generated evidence in ignored `artifacts/`.
 
-- [ ] Add build/privacy tests before implementation. Assert a missing build fails; later assert exactly four generated `demo-N.jpg` images, no unresolved placeholders, private paths or known personal image names, and deterministic HTML.
-- [ ] Copy only the reviewed source and test text files; rewrite imports and test output paths. Replace user/event-specific copy and download name; retain editor behavior.
-- [ ] Build demo images with `createCanvas`, drawing numbered coloured geometric scenes; encode JPEG, render a preview via `CollageCore.draw`, embed source and demo data.
-- [ ] Install exact tested dev dependencies and generate npm lockfile. Scripts: `npm run build`, `npm test`, `npm run check`.
-- [ ] Run `npm ci --ignore-scripts && npm run check`; test actual JPEG sizes and palette pixels as well as geometry and interaction events.
-- [ ] Commit: `git add src scripts tests package.json package-lock.json .gitignore docs && git commit -m "feat: package reproducible offline collage editor"`.
+- [x] Add build/privacy tests before implementation. Assert a missing build fails; later assert exactly four generated `demo-N.jpg` images, no unresolved placeholders, private paths or known personal image names, and deterministic HTML.
+- [x] Copy only the reviewed source and test text files; rewrite imports and test output paths. Replace user/event-specific copy and download name; retain editor behavior.
+- [x] Build demo images with `createCanvas`, drawing numbered coloured geometric scenes; encode JPEG, render a preview via `CollageCore.draw`, embed source and demo data.
+- [x] Install exact tested dev dependencies and generate npm lockfile. Scripts: `npm run build`, `npm test`, `npm run check`.
+- [x] Run `npm ci --ignore-scripts && npm run check`; test actual JPEG sizes and palette pixels as well as geometry and interaction events.
+- [x] Commit: `git add src scripts tests package.json package-lock.json .gitignore docs && git commit -m "feat: package reproducible offline collage editor"`.
 
 ### Task 2: PR and release workflow
 
@@ -35,9 +35,9 @@
 
 **Interfaces:** CI executes `npm ci --ignore-scripts` and `npm run check`; contributor instructions use the same commands. Private GitHub PR compares feature branch against main.
 
-- [ ] Document setup, feature limits, privacy, manual browser acceptance and licence decision gate. Add small follow-up milestones rather than promise ongoing background development.
-- [ ] Add read-only CI for push/PR and a PR checklist covering tests, original assets and output dimensions; no deployment job or secret injection.
-- [ ] Run full checks and inspect generated preview. Inspect staged filenames/content and `git diff --check`; commit: `chore: add review workflow and release roadmap`.
+- [x] Document setup, feature limits, privacy, manual browser acceptance and licence decision gate. Add small follow-up milestones rather than promise ongoing background development.
+- [x] Add read-only CI for push/PR and a PR checklist covering tests, original assets and output dimensions; no deployment job or secret injection.
+- [x] Run full checks and inspect generated preview. Inspect staged filenames/content and `git diff --check`; commit: `chore: add review workflow and release roadmap`.
 - [ ] Create approved private repo, push base and feature branch, open first PR, read back visibility/base/head/URL. Wait for CI outcome, fix in feature branch if needed, never auto-merge.
 
 ## Completion evidence
