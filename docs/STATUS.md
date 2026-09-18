@@ -12,12 +12,14 @@ Owner: Jimmy Lau. Repo: `jimmylau-DOTAI/dotai-collage-studio` (private, verified
 - Original personal prototype and photographs were not modified.
 - Independent read-only code review found no migration-specific blocker for the first private PR. Two inherited interaction/memory issues are recorded in `ROADMAP.md`; this is not a claim that the editor has no bugs.
 
-## Remote gate
+## Remote PR
 
-Private repository and initial `main` README have been pushed. The first feature-branch push was rejected because the GitHub CLI OAuth grant lacks `workflow` scope for `.github/workflows/ci.yml`. Await the owner's normal GitHub authorization flow before retrying. No credentials or device codes are stored here.
+The owner completed the normal GitHub CLI authorization flow and the feature branch was pushed. The previous missing `workflow` scope blocker is resolved; no credentials or device codes are stored here.
 
-Until the push/PR is read back, this is **local implementation complete, remote PR/CI pending**. Do not claim CI ran or the PR exists. No merge, public release or deployment is authorized by this handoff.
+[PR #1](https://github.com/jimmylau-DOTAI/dotai-collage-studio/pull/1) is OPEN, from `codex/open-source-foundation` into `main`. Repository visibility was read back as PRIVATE. GitHub Actions is configured for Node 22 and 24; consult the PR checks for the latest commit's live results rather than treating this receipt as a permanent green status.
+
+No merge, public release or deployment has been performed. The local feature branch is retained for review fixes.
 
 ## Next
 
-Complete authorization, push the feature branch, open PR against `main`, inspect CI evidence and update this receipt. Real-browser acceptance and project save/load remain follow-up PRs, not implemented features.
+Review the PR and its CI evidence; merge remains the owner's decision. Real-browser acceptance, the inherited interaction/memory fixes and project save/load remain follow-up PRs, not implemented features.
