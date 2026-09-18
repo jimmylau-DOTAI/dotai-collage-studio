@@ -38,7 +38,9 @@
 - [x] Document setup, feature limits, privacy, manual browser acceptance and licence decision gate. Add small follow-up milestones rather than promise ongoing background development.
 - [x] Add read-only CI for push/PR and a PR checklist covering tests, original assets and output dimensions; no deployment job or secret injection.
 - [x] Run full checks and inspect generated preview. Inspect staged filenames/content and `git diff --check`; commit: `chore: add review workflow and release roadmap`.
-- [ ] Create approved private repo, push base and feature branch, open first PR, read back visibility/base/head/URL. Wait for CI outcome, fix in feature branch if needed, never auto-merge.
+- [x] Create approved private repo, push base and feature branch, open first PR, read back visibility/base/head/URL. Wait for CI outcome, fix in feature branch if needed, never auto-merge.
+
+Remote evidence: PR #1 is open; repository PRIVATE; the implementation commit `e3a9d09` passed GitHub Actions run `35371704300` on Node 22 and 24. Later documentation-only commits remain covered by the PR's live checks. No merge or publication occurred.
 
 ## Completion evidence
 
