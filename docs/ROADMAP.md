@@ -20,6 +20,11 @@ Use generated images only. On Chrome and Safari desktop, then a mobile/touch bro
 
 Treat any failure as a reproducible issue and regression test, not a blanket redesign.
 
+Independent foundation review identified two inherited cases to address in this stage:
+
+- In custom-shape mode, switching to another photo without an initialized mask can leave the vertex controls empty. Reinitialize or clearly exit shape mode on selection; cover the sequence with a regression test.
+- Replacing photos appends image data to in-memory arrays even after older undo states expire. Review reference-aware cleanup and decoded-image memory bounds; retain undo/redo correctness.
+
 ## PR 3 — Save and reopen an editable project
 
 Versioned local project file containing geometry/palette/images; validate imported schema, dimensions and data limits. Undo/redo must work after import. Explicit save/load; no cloud account needed. Separate privacy/size review before implementation.
