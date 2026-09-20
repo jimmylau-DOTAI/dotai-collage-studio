@@ -103,6 +103,8 @@ canvas.dragging { cursor: grabbing; }
 #photo-actions, #frame-actions { display:flex; gap:2px; }
 .mode-switch { display:flex; gap:4px; padding:4px; border:1px solid var(--line); background:white; border-radius:12px; margin:12px auto 0; }
 .mode-switch button { border:0; background:transparent; min-width:92px; min-height:40px; }
+.editor-controls { display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:8px; margin:0 0 8px; max-width:100%; }
+.editor-controls .mode-switch, .editor-controls .canvas-tools { margin:0; }
 #photo-mode[aria-pressed=true] { background:#E8F1FF; color:#0059AA; box-shadow:inset 0 0 0 1px #0059AA; }
 #frame-mode[aria-pressed=true] { background:#FFF2E3; color:#914400; box-shadow:inset 0 0 0 1px #914400; }
 #swap-grip, .photo[draggable=true] { cursor:grab; }
