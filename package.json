@@ -1,9 +1,9 @@
 {
   "name": "dotai-collage-studio",
   "version": "0.1.0",
-  "private": true,
-  "license": "UNLICENSED",
-  "description": "Local-first four-photo collage editor with editable frames and slanted masks",
+  "private": false,
+  "license": "MIT",
+  "description": "Local-first social collage editor with editable frames, slanted masks and offline JPEG export",
   "engines": {
     "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },

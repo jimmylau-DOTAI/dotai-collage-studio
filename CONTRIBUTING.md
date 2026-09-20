@@ -1,6 +1,6 @@
 # 開發與 PR 流程
 
-現階段係 private pre-release，owner：Jimmy Lau。
+呢個係公開開源項目，maintainer：Jimmy Lau。
 
 ## 一個改動，一個 PR
 
@@ -20,6 +20,6 @@
 - 不提交真實活動相、第三方 app 截圖／UI 素材、credential、`.env`、generated HTML 或個人絕對路徑。
 - `check:privacy` 係已知 pattern tripwire，不是完整 secret scanner 或法律保證；仍需 review diff。
 
-## 開源 gate
+## 發佈界線
 
-未批准前保持 private；不將 repo 發佈成 npm package。改 licence、轉 public、首次 release／deploy 由 owner 明確批准。見 `docs/PROVENANCE.md`。
+唔會將 repo 自動發佈成 npm package 或部署網站。新增公開 asset、改 licence 或建立正式 release 前，先用 Issue／PR 說明來源及權利。見 `docs/PROVENANCE.md`。

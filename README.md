@@ -1,8 +1,10 @@
 # DotAI Collage Studio
 
-本機運行嘅 1–9 相拼圖工具：一次揀相、自動配合張數排版、框內裁切，再下載 JPG。
+本機運行嘅 1–9 相拼圖工具：一次揀相、自動配合張數排版、框內裁切，再下載 JPG。作品相片只會喺你部機嘅瀏覽器處理。
 
-**狀態：private development / pre-release。** 正準備日後開源，目前未選擇開源 licence，亦未部署公開網站。
+**公開開源版本 · MIT license · 無後端／無上傳／無追蹤。** 呢個係可下載使用嘅工具，唔係已部署網站。
+
+> **Made by [Jimmy Lau](https://github.com/jimmylau-DOTAI) at DotAI.** 我想將日常社交內容製作入面最磨人嘅「揀相、裁切、排版」變成一個可直接試用、可持續改進嘅本機工具。如果你試用後有想法，歡迎開 Issue（PS：GitHub 入面記錄問題或建議嘅地方）或者 Pull Request（PS：提交一組程式改動畀社群審閱）。
 
 ## 開始使用
 
@@ -73,10 +75,10 @@ artifacts/ 測試預覽（不入 Git）
 
 ## Git / PR
 
-`main` 放已 review 嘅版本。每個改動用 `codex/<feature>` branch，完成測試後開 PR；CI 通過唔代表自動 merge。細節見 [CONTRIBUTING.md](CONTRIBUTING.md)。
+`main` 放已 review 嘅版本。每個改動用 `codex/<feature>` branch，完成測試後開 PR；CI 通過唔代表自動 merge。細節見 [CONTRIBUTING.md](CONTRIBUTING.md)。公開前 QA 見 [docs/RELEASE-QA.md](docs/RELEASE-QA.md)。
 
 下一步：[路線圖及真人驗收](docs/ROADMAP.md) · [來源與開源前檢查](docs/PROVENANCE.md) · [安全回報](SECURITY.md)
 
 ## Licence
 
-目前 `UNLICENSED`，未授予開源再分發權。轉 public 前由 owner 選定 licence；DotAI 商標、品牌素材及使用者照片唔會自動隨程式碼授權。
+程式碼採用 [MIT License](LICENSE)。DotAI 名稱、標誌及其他品牌素材不構成商標授權；使用者自行加入嘅相片與標誌，權利仍屬其原有權利人。

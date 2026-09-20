@@ -12,7 +12,7 @@ The 29 layout structures were implemented as geometric coordinates with guidance
 - Built demo images and outputs are ignored. No real person's photograph is included in the source history.
 - User-selected images are processed in browser memory; the user remains responsible for their publication rights.
 - `assets/brand/dotai-icon.png` is a proportional 256×256 derivative of official asset LOGO-007, the navy square `.ai` icon. Source/derivative SHA-256 and transformation are recorded in `assets/brand/manifest.json`; no source path or internal brand document is included.
-- The mark is authorized for DotAI brand outputs in this private project. Formal public redistribution clearance remains missing. Brand names/marks are not implicitly licensed by a future code licence; clear those rights or remove/replace the branded distribution before public release.
+- Owner Jimmy Lau approved public distribution of this derivative in this repository on 2026-09-20. Brand names/marks are not implicitly licensed by the MIT code licence; contributors must not treat them as reusable trademarks.
 - The privacy scanner permits only this exact derivative's path and hash, checking both working tree and Git index. It does not allow arbitrary PNGs or personal photographs.
 
 ## Palette
@@ -23,10 +23,10 @@ Canvas backgrounds remain independent: IG accent `#0B63F6`, white `#FFFFFF`, sof
 
 ## Before public release
 
-- [ ] Owner approves the product name, scope and public GitHub visibility.
-- [ ] Owner chooses a code licence and adds a real `LICENSE` file; package metadata currently remains `UNLICENSED`.
-- [ ] Review layout/reference provenance and any brand/trademark limits.
-- [ ] Inspect dependency licences and required notices for the shipped form (the HTML has no bundled runtime libraries; build/test dependencies remain development tools).
-- [ ] Scan all Git history, not just the current tree, for credentials, private paths, photos and proprietary documents.
-- [ ] Complete Chrome/Safari/mobile manual acceptance and document known issues.
+- [x] Owner approves the product name, scope and public GitHub visibility — 2026-09-20.
+- [x] Owner chooses the MIT code licence and adds `LICENSE` — 2026-09-20.
+- [x] Review layout/reference provenance and brand/trademark limits; no external screenshots or app assets are included. Brand marks remain separate from the code licence.
+- [x] Inspect dependency audit for the shipped form — 0 production vulnerabilities reported on 2026-09-20; build/test dependencies remain development tools.
+- [x] Scan all reachable Git history for credentials, private paths, photos and proprietary documents — no pattern matches on 2026-09-20.
+- [ ] Complete Chrome/Safari/mobile manual acceptance and document known issues. This is still required for UX confidence, not a blocker to publishing source with the known limits disclosed.
 - [ ] Approve a tagged release and any public demo separately; never deploy as a side effect of CI.

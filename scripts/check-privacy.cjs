@@ -23,7 +23,7 @@ function walk(folder){for(const entry of fs.readdirSync(folder,{withFileTypes:tr
   if(entry.isSymbolicLink()){failures.push(relative+' is a symlink');continue;}
   if(entry.isDirectory()){walk(full);continue;}
   if(approvedAssets.has(relative)){checkAsset(relative,fs.readFileSync(full));continue;}
-  if(!/\.(?:js|cjs|css|json|md|yml|yaml|template)$/.test(entry.name)&&!['.gitignore'].includes(entry.name)){failures.push(relative+' is not an approved source/document type');continue;}
+  if(!/\.(?:js|cjs|css|json|md|yml|yaml|template)$/.test(entry.name)&&!['.gitignore','LICENSE'].includes(entry.name)){failures.push(relative+' is not an approved source/document type');continue;}
   check(relative,fs.readFileSync(full,'utf8'));
 }}
 walk(root);
