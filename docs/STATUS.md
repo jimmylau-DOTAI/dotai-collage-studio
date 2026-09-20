@@ -4,6 +4,8 @@ Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/direct-photo-flex-lay
 
 ## Current: direct photo tools and flexible shared dividers
 
+- Mode toolbar revision: fixed Photo/Frame segmented controls stay labelled with separate pressed states. Context actions now use labelled icon buttons in a compact strip above, never inside, the artwork. Photo actions are zoom/centre; frame actions are restore proportions/make hero. Buttons and photo selection cannot change mode during an active pointer gesture. New behavioural coverage checks mode state, action visibility, gesture locking and frame reset; browser visual acceptance remains pending.
+
 - Latest direct controls: blue photo-corner handles zoom the clipped image without changing frames; orange shared handles adjust layout. Clicking a frame edge enters frame mode; clicking the interior returns to crop mode. Selected-photo percentage and secondary actions float by the selection; other actions live under More. Below the canvas, frame mode and history remain. Automated corner zoom, fixed geometry, undo and edge/interior checks pass; actual browser placement/gesture acceptance is still PENDING.
 
 - Latest interaction: clicking a photo enters crop-only mode and hides shared-frame handles. Explicit frame adjustment retains flexible layout editing. Removed the separate swap grip: stationary 450ms hold arms a swap, immediate motion locks into crop, release/cancel clears the timer. Thumbnail and Shift swaps remain. All 18 suites and privacy checks pass; real-browser gesture feel remains PENDING.

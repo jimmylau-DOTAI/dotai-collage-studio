@@ -97,10 +97,14 @@ canvas.dragging { cursor: grabbing; }
 .empty-state p { margin:0; color:var(--muted); }
 .canvas-tools { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px; margin-top:14px; }
 .canvas-tools button { font-size:12px; }
-.canvas-wrap .canvas-tools { position:absolute; z-index:4; transform:translateX(-50%); margin:0; padding:6px 10px; border-radius:10px; background:#fff; box-shadow:0 2px 12px #00345C30; font-size:12px; width:max-content; max-width:90%; }
-.photo-more { position:relative; border:0; padding:0; margin:0; }
-.photo-more summary { cursor:pointer; padding:4px 8px; }
-.photo-more[open] { display:flex; flex-wrap:wrap; gap:4px; max-width:260px; }
+.canvas-tools { margin:0 0 10px; padding:4px 8px; border:1px solid var(--line); border-radius:12px; background:white; min-height:44px; font-size:12px; }
+.canvas-tools button { width:36px; height:36px; min-height:36px; padding:0; border:0; background:transparent; font-size:22px; }
+.canvas-tools button:hover { background:var(--selected); }
+#photo-actions, #frame-actions { display:flex; gap:2px; }
+.mode-switch { display:flex; gap:4px; padding:4px; border:1px solid var(--line); background:white; border-radius:12px; margin:12px auto 0; }
+.mode-switch button { border:0; background:transparent; min-width:92px; min-height:40px; }
+#photo-mode[aria-pressed=true] { background:#E8F1FF; color:#0059AA; box-shadow:inset 0 0 0 1px #0059AA; }
+#frame-mode[aria-pressed=true] { background:#FFF2E3; color:#914400; box-shadow:inset 0 0 0 1px #914400; }
 #swap-grip, .photo[draggable=true] { cursor:grab; }
 .photo.drop-target { outline:3px solid var(--brand-accent); }
 .photo-card { min-width:0; display:flex; flex-direction:column; gap:4px; }

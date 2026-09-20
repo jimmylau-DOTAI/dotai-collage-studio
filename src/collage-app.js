@@ -10,7 +10,7 @@ let pageW=1080,pageH=1080,holdTimer=null,frameMode=false;
 let layoutCount=0,batchToken=0,wheelTimer=null,dragSource=null,dropTarget=-1;
 $('photos').before($('batch-upload-ui').content.cloneNode(true));
 $('layouts').after($('slant-ui').content.cloneNode(true));
-$('undo').parentElement.prepend($('frame-mode'));$('canvas-wrap').append($('canvas-tools'));
+$('canvas-wrap').before($('canvas-tools'));
 const fileInputs=[...document.querySelectorAll('input[type=file]')];fileInputs.forEach(input=>input.disabled=true);$('empty-add').disabled=true;$('show-demo').disabled=true;
 const logoTokens={square:0,wordmark:0};
 function finishZoom(){window.clearTimeout(wheelTimer);const before=zoomBefore;zoomBefore=null;if(before&&changed(before))save(before)}
@@ -27,7 +27,7 @@ function draw(){
  if(!ready)return;C.draw(ctx,images,state);ox.clearRect(0,0,pageW,pageH);
  if(!state.slots.length)return;
  const b=box(),scale=pageW/(canvas.getBoundingClientRect().width||540);
- $('canvas-tools').style.left=(C.clamp((b.x+b.w/2)/pageW,.22,.78)*100)+'%';$('canvas-tools').style.top=(C.clamp((b.y+18*scale)/pageH,.02,.88)*100)+'%';
+ // Contextual tools stay outside the artwork in normal document flow.
  ox.strokeStyle=frameMode?'#D16A00':'#0059FF';ox.lineWidth=2*scale;
  if(b.mask?.kind==='polygon'){ox.beginPath();b.mask.points.forEach(([x,y],i)=>ox[i?'lineTo':'moveTo'](b.x+x*b.w,b.y+y*b.h));ox.closePath();ox.stroke()}else ox.strokeRect(b.x,b.y,b.w,b.h);
  ox.fillStyle='#FFFFFF';for(const h of (frameMode?C.flexHandles(state,selected):photoHandles(b))){ox.beginPath();ox.arc(h.x,h.y,6*scale,0,Math.PI*2);ox.fill();ox.stroke()}
@@ -35,7 +35,7 @@ function draw(){
 }
 function controls(){
  const has=state.slots.length>0;selected=Math.max(0,Math.min(selected,state.slots.length-1));renderLayouts();$('photo-count').textContent=state.demo?'示範圖：加入你嘅相片時會全部取代':'目前 '+state.slots.length+' / 9 張';$('add-files').disabled=!state.demo&&state.slots.length>=9;
- $('empty-state').hidden=has;$('canvas-tools').hidden=!has;$('selected-label').textContent='相片 '+(selected+1)+' · '+Math.round((state.slots[selected]?.zoom||1)*100)+'%';$('make-hero').disabled=state.slots.length<2;$('layout-name').textContent=frameMode?'調整相框 · 圓點改比例':'調構圖 · 只調整所選相片';canvas.dataset.mode=frameMode?'frame':'crop';$('frame-mode').textContent=frameMode?'完成相框調整':'調整相框';$('frame-mode').setAttribute('aria-pressed',String(frameMode));
+ $('empty-state').hidden=has;$('canvas-tools').hidden=!has;$('selected-label').textContent='相片 '+(selected+1)+' · '+Math.round((state.slots[selected]?.zoom||1)*100)+'%';$('make-hero').disabled=state.slots.length<2;$('layout-name').textContent=frameMode?'調整相框 · 圓點改比例':'調構圖 · 只調整所選相片';canvas.dataset.mode=frameMode?'frame':'crop';$('photo-mode').setAttribute('aria-pressed',String(!frameMode));$('photo-actions').hidden=frameMode;$('frame-actions').hidden=!frameMode;$('frame-mode').setAttribute('aria-pressed',String(frameMode));
  ['zoom','zoom-in','zoom-out','center','export-top','export-bottom'].forEach(id=>$(id).disabled=!has);
  const tilted=!!(state.slant.x||state.slant.y);$('slant-toggle').setAttribute('aria-pressed',String(tilted));$('slant-toggle').textContent=tilted?'關閉斜切':'啟用斜切';$('slant-toggle').disabled=state.slots.length<2;
  ['x','y'].forEach(axis=>{$('slant-'+axis).value=Math.round(state.slant[axis]*100);$('slant-'+axis+'-value').value=Math.round(state.slant[axis]*100);$('slant-'+axis).disabled=state.slots.length<2});$('slant-reset').disabled=!tilted;
@@ -54,10 +54,10 @@ function syncPhotoSelection(){finishZoom();document.querySelectorAll('.photo').f
 function thumbs(){const out=$('photos');out.replaceChildren();state.slots.forEach((s,i)=>{
  const card=document.createElement('div'),e=document.createElement('button'),image=document.createElement('img'),label=document.createElement('span'),remove=document.createElement('button');card.className='photo-card';e.className='photo';e.setAttribute('aria-pressed',String(i===selected));e.title='點選調構圖；拖到另一張交換';e.draggable=true;
  e.ondragstart=event=>beginDrag(i,event);e.ondragover=event=>{if(dragSource){event.preventDefault();e.classList.add('drop-target')}};e.ondragleave=()=>e.classList.remove('drop-target');e.ondrop=event=>dropPhoto(i,event);e.ondragend=()=>{dragSource=null;dropTarget=-1;document.querySelectorAll('.drop-target').forEach(n=>n.classList.remove('drop-target'));draw()};
- image.src=thumbnail(images[s.photo]);image.alt='相片 '+(i+1)+' 預覽';image.draggable=false;label.textContent='相片 '+(i+1);e.append(image,label);e.onclick=()=>{frameMode=false;selected=i;syncPhotoSelection();controls();draw()};e.ondblclick=()=>selectPhoto(i);remove.className='photo-remove';remove.textContent='移除';remove.setAttribute('aria-label','移除相片 '+(i+1));remove.disabled=state.slots.length===1;remove.onclick=()=>{if(state.slots.length===1)return;batchToken++;rememberAnd(()=>{state.slots=state.slots.filter((_,index)=>index!==i);if(selected>i)selected--;reflow()});say('已移除相片；可按復原還原')};card.append(e,remove);out.append(card)
+ image.src=thumbnail(images[s.photo]);image.alt='相片 '+(i+1)+' 預覽';image.draggable=false;label.textContent='相片 '+(i+1);e.append(image,label);e.onclick=()=>{if(gesture)return;frameMode=false;selected=i;syncPhotoSelection();controls();draw()};e.ondblclick=()=>selectPhoto(i);remove.className='photo-remove';remove.textContent='移除';remove.setAttribute('aria-label','移除相片 '+(i+1));remove.disabled=state.slots.length===1;remove.onclick=()=>{if(state.slots.length===1)return;batchToken++;rememberAnd(()=>{state.slots=state.slots.filter((_,index)=>index!==i);if(selected>i)selected--;reflow()});say('已移除相片；可按復原還原')};card.append(e,remove);out.append(card)
 })}
 function reflow(){delete state.customCells;state.layout=C.layoutsFor(state.slots.length)[0].id;state.cut={top:.5,bottom:.5,left:.5,right:.5};state.slots.forEach(s=>{delete s.frame;delete s.mask});if(state.slots.length===1)state.slant={x:0,y:0}}
-function selectPhoto(index){frameMode=false;finishZoom();selected=index;syncPhotoSelection();controls();draw();canvas.focus()}
+function selectPhoto(index){if(gesture)return;frameMode=false;finishZoom();selected=index;syncPhotoSelection();controls();draw();canvas.focus()}
 function refresh(){controls();thumbs();draw()}
 function settleGesture(){if(gesture)finish({pointerId:gesture.id})}
 function rememberAnd(fn){settleGesture();finishZoom();const before=clone(state);fn();refresh();if(changed(before))save(before)}
@@ -69,7 +69,7 @@ function dropPhoto(index,e){e.preventDefault();const from=state.slots.indexOf(dr
 canvas.addEventListener('dragover',e=>{if(!dragSource)return;e.preventDefault();dropTarget=atPoint(coords(e));draw()});
 canvas.addEventListener('drop',e=>dropPhoto(atPoint(coords(e)),e));
 canvas.addEventListener('dragleave',()=>{dropTarget=-1;draw()});
-$('frame-mode').onclick=()=>{settleGesture();frameMode=!frameMode;refresh()};
+$('frame-mode').onclick=()=>{if(gesture)return;finishZoom();frameMode=true;refresh()};$('photo-mode').onclick=()=>{if(gesture)return;finishZoom();frameMode=false;refresh()};$('frame-reset').onclick=()=>rememberAnd(()=>{delete state.customCells;state.slots.forEach(s=>{delete s.frame;delete s.mask});state.cut={top:.5,bottom:.5,left:.5,right:.5}});
 $('canvas-zoom-in').onclick=()=>$('zoom-in').click();$('canvas-zoom-out').onclick=()=>$('zoom-out').click();$('canvas-center').onclick=()=>$('center').click();
 $('empty-add').onclick=()=>$('add-files').click();
 $('show-demo').onclick=()=>rememberAnd(()=>{state=C.defaults();state.demo=true;selected=0});

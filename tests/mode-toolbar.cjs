@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict');
+const {openEditor}=require('./helpers/editor-harness.cjs');
+(async()=>{const a=await openEditor();try{const {el,pointer,window}=a;
+ assert(el('photo-mode'),'Separate photo mode control');
+ assert(!el('canvas-wrap').contains(el('canvas-tools')),'Tools never cover artwork');
+ el('frame-mode').click();assert.equal(el('frame-mode').getAttribute('aria-pressed'),'true');assert(el('photo-actions').hidden);assert(!el('frame-actions').hidden);
+ el('photo-mode').click();assert.equal(el('photo-mode').getAttribute('aria-pressed'),'true');assert(!el('photo-actions').hidden);
+ pointer('pointerdown',18,18);el('frame-mode').click();assert.equal(el('canvas').dataset.mode,'crop','Mode locked during corner drag');pointer('pointerup',18,18);
+ el('frame-mode').click();el('make-hero').click();el('frame-reset').click();
+ let state;const C=window.CollageCore,draw=C.draw;C.draw=(ctx,images,s,...args)=>{state=s;return draw(ctx,images,s,...args)};el('frame-reset').click();assert(!state.customCells);
+ assert.equal(a.errors.length,0);console.log('PASS: separate modes, contextual external toolbar and gesture mode lock');
+}finally{a.close()}})().catch(e=>{console.error(e);process.exitCode=1});
