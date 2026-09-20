@@ -32,6 +32,7 @@ async function demo(index) {
   const preview=createCanvas(1080,1080);
   C.draw(preview.getContext('2d'),await Promise.all(photos.map(p=>loadImage(p.src))),C.defaults());
   const replacements={
+    __ICON_DATA__:JSON.stringify(Object.fromEntries(['photo','frame','layout-grid','download','arrow-back-up','arrow-forward-up','focus-centered','layout-dashboard','brand-sketch','plus','minus','rotate-2'].map(name=>[name,fs.readFileSync(path.join(root,'node_modules/@tabler/icons/icons/outline',name+'.svg'),'utf8')]))),
     __BRAND_JS__:fs.readFileSync(path.join(root,'src/collage-brand.js'),'utf8').replace(/<\/script/gi,'<\\/script'),
     __PALETTE_JS__:fs.readFileSync(path.join(root,'src/collage-palette.js'),'utf8').replace(/<\/script/gi,'<\\/script'),
     __EDITOR_CSS__:fs.readFileSync(path.join(root,'src/editor.css'),'utf8'),
@@ -43,8 +44,9 @@ async function demo(index) {
   };
   const template=fs.readFileSync(path.join(root,'src/editor.html.template'),'utf8');
   for(const key of Object.keys(replacements))if(template.split(key).length!==2)throw new Error(`Expected exactly one ${key}`);
-  const html=template.replace(/__EDITOR_CSS__|__BRAND_LOGO__|__PREVIEW_DATA__|__PHOTO_DATA__|__BRAND_JS__|__PALETTE_JS__|__CORE_JS__|__APP_JS__/g,key=>replacements[key]);
+  const html=template.replace(/__ICON_DATA__|__EDITOR_CSS__|__BRAND_LOGO__|__PREVIEW_DATA__|__PHOTO_DATA__|__BRAND_JS__|__PALETTE_JS__|__CORE_JS__|__APP_JS__/g,key=>replacements[key]);
   fs.mkdirSync(path.join(root,'dist'),{recursive:true});
-  fs.writeFileSync(path.join(root,'dist/index.html'),html);
+  const notice='<!-- Tabler Icons\n'+fs.readFileSync(path.join(root,'node_modules/@tabler/icons/LICENSE'),'utf8')+'\n-->';
+  fs.writeFileSync(path.join(root,'dist/index.html'),html.replace('</head>',notice+'</head>'));
   console.log(`Built dist/index.html (${Buffer.byteLength(html)} bytes, 4 generated demo images)`);
 })().catch(error=>{console.error(error);process.exitCode=1;});

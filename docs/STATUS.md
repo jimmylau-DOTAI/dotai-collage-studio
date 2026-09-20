@@ -1,8 +1,17 @@
 # Current local handoff — 2026-09-20
 
-Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/direct-photo-flex-layout`.
+Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/light-editor-redesign`.
 
-## Current: direct photo tools and flexible shared dividers
+## Current: light editor and mobile tools
+
+- Applied user-supplied light references: white header/panels, gray-blue workspace and blue selection. Official DotAI logo and exported artwork colors are unchanged.
+- Color-block template previews follow the selected output ratio, with category filters, selected marks and a visible empty-category explanation. No real photos are used in template previews.
+- Below 900px, bottom navigation switches between Canvas, Layout, Photos and Brand. Settings live in a nonmodal bottom panel with safe-area offsets and 44px controls. Pinch gestures and project persistence are not added.
+- Tabler icons are embedded at build time with their MIT notice. The shipped editor remains single-file and has no runtime network dependency.
+- Verification: all 23 suites plus privacy and whitespace checks pass. Desktop visual acceptance and real-phone portrait/landscape, file picker/download, gesture and larger-text checks are still PENDING. No restriction workaround was used to claim visual QA.
+- Design audit and scope: `docs/LIGHT-EDITOR-DESIGN.md`. Local only; no push, PR, deployment or changes to the original checkout. Download existing artwork before refreshing because unsaved editable work is not persisted.
+
+## Previous: direct photo tools and flexible shared dividers
 
 - Slant gesture repair: frame tools now separate Proportion (round shared controls) and Slant (diamond boundary endpoints). Diamond drags update the shared slant angle, not custom cell proportions; paired boundaries remain constrained by the existing renderer. Legacy sidebar sliders are hidden in favour of the contextual operation and straighten action. Integration checks cover pointer-driven angle change, crop after slant, and undo/redo. Browser handfeel remains pending.
 

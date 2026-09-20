@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict');const {openEditor}=require('./helpers/editor-harness.cjs');
+(async()=>{const a=await openEditor();try{const {window,el,change}=a,doc=window.document;
+ assert(el('layout-filter'),'Layout category filter exists');
+ const cards=()=>[...doc.querySelectorAll('.layout')];assert(cards().length>5);
+ assert.equal(doc.querySelectorAll('#layouts image,#layouts img').length,0,'Previews never use real photos');
+ assert(new Set([...doc.querySelector('.layout-preview').children].map(r=>r.getAttribute('fill'))).size>1,'Frames use distinct blue-gray tones');
+ change('ratio','4:5');assert.equal(doc.querySelector('.layout-preview').getAttribute('viewBox'),'0 0 100 125','Preview follows export aspect');
+ change('layout-filter','slant');assert.equal(cards().filter(c=>!c.hidden).length,1);cards().find(c=>!c.hidden).click();assert.equal(doc.querySelector('[data-layout="cut-grid"]').getAttribute('aria-pressed'),'true');
+ el('mobile-brand').click();assert.equal(doc.body.dataset.mobilePanel,'brand');assert.equal(el('mobile-brand').getAttribute('aria-pressed'),'true');
+ el('mobile-canvas').click();assert.equal(doc.body.dataset.mobilePanel,'canvas');
+ assert(el('logo-square'));assert(el('files'));assert.equal(a.errors.length,0);console.log('PASS: color-only aspect-aware templates, categories and mobile panel switching');
+}finally{a.close()}})().catch(e=>{console.error(e);process.exitCode=1});

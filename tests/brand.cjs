@@ -35,7 +35,7 @@ const root = path.join(__dirname, '..');
   };
   const token = name => css.match(new RegExp(`--${name}:\\s*#([a-f\\d]{6})`, 'i'))[1];
   // Accent blue is a decorative header rule, never a small-text background.
-  for(const [fg,bg] of [['FFFFFF',token('brand-navy')],['D1E7F8',token('brand-navy')],[token('muted'),'FFFFFF'],[token('muted'),token('workspace')],[token('brand-navy'),token('selected')]]) {
+  for(const [fg,bg] of [['FFFFFF',token('accent')],[token('ink'),'FFFFFF'],[token('muted'),'FFFFFF'],[token('muted'),token('workspace')],[token('brand-navy'),token('selected')]]) {
     const values=[luminance(fg),luminance(bg)].sort((a,b)=>b-a);
     assert((values[0]+.05)/(values[1]+.05)>=4.5, `Text contrast ${fg}/${bg}`);
   }
