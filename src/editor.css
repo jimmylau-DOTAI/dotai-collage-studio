@@ -51,7 +51,8 @@ select { padding: 8px; border: 1px solid var(--control-line); border-radius: 7px
 .ratio-row select { flex: 1; }
 .layouts { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; max-height: 368px; overflow: auto; padding: 4px; margin: 0 -4px; scrollbar-gutter: stable; }
 .layout { border: 1px solid var(--control-line); border-radius: 7px; background: white; padding: 9px 3px; display: flex; flex-direction: column; align-items: center; font-size: 10px; line-height: 1.4; gap: 6px; }
-.layout svg { width: 36px; height: 36px; color: #71869A; flex: none; }
+.layout-preview { width: 42px; height: 42px; color: #71869A; flex: none; }
+.layout-preview rect { fill: #E9F4FC; stroke: currentColor; stroke-width: 4; rx: 3; }
 .layout[aria-pressed=true], .photo[aria-pressed=true] { border-color: var(--brand-navy); background: var(--selected); box-shadow: inset 0 0 0 1px var(--brand-navy); }
 .layout[aria-pressed=true] svg { color: var(--brand-navy); }
 .range-label { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; margin: 13px 0 0; }
@@ -90,6 +91,9 @@ canvas.dragging { cursor: grabbing; }
 .photo small { display: none; }
 .grip { color: var(--muted); margin-left: auto; }
 .photo.over { outline: 2px dashed var(--brand-navy); }
+.upload-photo { margin-top: 10px; }
+.logo-preview { display: block; width: 100%; height: 54px; object-fit: contain; background: #F5F8FF; border: 1px solid var(--line); border-radius: 7px; margin: 8px 0; padding: 6px; }
+.logo-preview.square { object-position: left center; }
 .position-actions { display: flex; gap: 8px; margin: 10px 0; }
 .position-actions button { flex: 1; font-size: 11px; }
 .replace-label { position: relative; display: flex; min-height: 44px; align-items: center; justify-content: center; color: var(--brand-navy); background: var(--selected); border: 1px dashed var(--control-line); padding: 9px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; }
