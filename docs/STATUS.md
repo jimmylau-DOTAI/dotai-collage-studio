@@ -1,4 +1,18 @@
-# Product handoff — 2026-09-19
+# Current local handoff — 2026-09-20
+
+Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/social-post-editor-mvp`.
+
+- Current outputs: square 1080×1080 and portrait 1080×1350 (4:5), default white background, 29 visual layout choices.
+- Photo replacement, zoom buttons, local logo previews/placements and saved custom colors are implemented. Browser/manual acceptance remains pending.
+- User requested local-only work: no further push, PR update or merge.
+- Delegated first pass completed: Luna A delivered photo upload targeting, thumbnail selection/cache and real-image regression checks; Luna E delivered `docs/ACCEPTANCE.md`. Codex reviewed both, strengthened upload completion/pixel assertions and integrated the new suite.
+- Verification: all seven suites and privacy checks passed. Upload tests cover target changes during reading, latest same-slot upload winning after both reads finish, photo uploads after logos, failed input preservation, undo/redo and actual thumbnail bytes. Manual acceptance remains pending.
+- Follow-up work remains for frame-control hit positions, zoom history, logo-band remapping, color preset management and complete keyboard/touch support. These are not declared finished by a passing smoke suite.
+- Existing thumbnail checks now decode actual JPEG bytes instead of returning a fake thumbnail URL. This verifies image data, not browser rendering.
+
+## Historical handoff — 2026-09-19
+
+The notes below record the earlier foundation/brand-interface stage, not the current feature or test status.
 
 Owner: Jimmy Lau. Repository: `jimmylau-DOTAI/dotai-collage-studio` (private).
 Current work: `codex/dotai-brand-interface`.

@@ -9,7 +9,7 @@ const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole:vc,beforeParse
   for(const key of ['width','height']){const d=Object.getOwnPropertyDescriptor(window.HTMLCanvasElement.prototype,key);Object.defineProperty(window.HTMLCanvasElement.prototype,key,{...d,set(v){d.set.call(this,v);if(surfaces.has(this))surfaces.get(this)[key]=v;}});}
   window.HTMLCanvasElement.prototype.setPointerCapture=function(){};
   window.HTMLCanvasElement.prototype.toBlob=function(done,type,quality){surfaces.get(this).encode('jpeg',Math.round(quality*100)).then(bytes=>done({bytes,type,size:bytes.length}));};
-  window.HTMLCanvasElement.prototype.toDataURL=function(){return 'data:image/jpeg;base64,AA==';};
+  window.HTMLCanvasElement.prototype.toDataURL=function(type,quality){return surfaces.get(this).toDataURL(type,quality);};
   window.HTMLCanvasElement.prototype.getContext=function(){if(!surfaces.has(this))surfaces.set(this,createCanvas(this.width,this.height));return surfaces.get(this).getContext('2d');};
   window.URL.createObjectURL=blob=>{downloads.push(blob);return'blob:test';};window.URL.revokeObjectURL=()=>{};window.HTMLAnchorElement.prototype.click=function(){};
 }});
@@ -18,6 +18,10 @@ const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole:vc,beforeParse
   assert.equal(errors.length,0);assert.equal(el('export-top').disabled,false);assert.equal(document.querySelectorAll('.layout').length,29);assert.equal(document.querySelectorAll('.photo').length,4);assert.equal(el('bg-color').value,'#ffffff');
   assert.deepEqual([...el('ratio').options].map(x=>x.value),['1:1','4:5']);assert.equal(el('edit-mode'),null);assert.equal(document.querySelector('[data-layout="grid"]').textContent,'經典四格');
   assert.equal(document.querySelectorAll('.layout-preview').length,29);assert.equal(document.querySelectorAll('.photo img').length,4);assert(el('bg-color'));
+  for(const image of document.querySelectorAll('.photo img')){
+    const meta=await sharp(Buffer.from(image.src.split(',')[1],'base64')).metadata();
+    assert.deepEqual([meta.width,meta.height,meta.format],[96,96,'jpeg'],'Thumbnail must contain a real decodable JPEG');
+  }
   document.querySelector('[data-color="#00345C"]').click();assert.equal(el('undo').disabled,false);
   el('ratio').value='4:5';el('ratio').dispatchEvent(new dom.window.Event('change'));assert.equal(el('canvas').width,1080);assert.equal(el('canvas').height,1350);
   const canvas=el('canvas'),box=dom.window.CollageCore.frameBoxes(dom.window.CollageCore.defaults())[0];

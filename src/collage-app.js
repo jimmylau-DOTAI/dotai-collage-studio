@@ -3,7 +3,7 @@
 'use strict';
 const C=CollageCore,B=CollageBrand,$=id=>document.getElementById(id),clone=v=>JSON.parse(JSON.stringify(v));
 const canvas=$('canvas'),ctx=canvas.getContext('2d'),overlay=$('edit-overlay'),ox=overlay.getContext('2d');
-const photos=JSON.parse($('photo-data').textContent),images=[],history=[],future=[];
+const photos=JSON.parse($('photo-data').textContent),images=[],history=[],future=[],thumbnailCache=new WeakMap(),uploadTokens=[];
 let state=C.defaults(),selected=0,ready=false,gesture=null,downloadUrl=null,zoomBefore=null;
 let pageW=1080,pageH=1080;
 const savedColorKey='dotai-collage-saved-colors-v1';
@@ -32,8 +32,9 @@ function controls(){
  [['square','logo-square-preview'],['wordmark','logo-wordmark-preview']].forEach(([kind,id])=>{const preview=$(id),asset=state.brand[kind];preview.hidden=!asset;if(asset)preview.src=asset.src});
  save();
 }
-function thumbnail(image){const c=document.createElement('canvas'),x=c.getContext('2d'),side=96;c.width=side;c.height=side;const scale=Math.max(side/image.width,side/image.height),w=image.width*scale,h=image.height*scale;x.drawImage(image,(side-w)/2,(side-h)/2,w,h);return c.toDataURL('image/jpeg',.85)}
-function thumbs(){const out=$('photos');out.replaceChildren();state.slots.forEach((s,i)=>{const e=document.createElement('button'),image=document.createElement('img'),label=document.createElement('span');e.className='photo';e.setAttribute('aria-pressed',String(i===selected));image.src=thumbnail(images[s.photo]);image.alt='相片 '+(i+1)+' 預覽';label.textContent='相片 '+(i+1);e.append(image,label);e.onclick=()=>{selected=i;controls();draw()};out.append(e)})}
+function thumbnail(image){let cached=thumbnailCache.get(image);if(cached)return cached;const c=document.createElement('canvas'),x=c.getContext('2d'),side=96;c.width=side;c.height=side;const scale=Math.max(side/image.width,side/image.height),w=image.width*scale,h=image.height*scale;x.drawImage(image,(side-w)/2,(side-h)/2,w,h);cached=c.toDataURL('image/jpeg',.85);thumbnailCache.set(image,cached);return cached}
+function syncPhotoSelection(){document.querySelectorAll('.photo').forEach((e,i)=>e.setAttribute('aria-pressed',String(i===selected)))}
+function thumbs(){const out=$('photos');out.replaceChildren();state.slots.forEach((s,i)=>{const e=document.createElement('button'),image=document.createElement('img'),label=document.createElement('span');e.className='photo';e.setAttribute('aria-pressed',String(i===selected));image.src=thumbnail(images[s.photo]);image.alt='相片 '+(i+1)+' 預覽';label.textContent='相片 '+(i+1);e.append(image,label);e.onclick=()=>{selected=i;syncPhotoSelection();controls();draw()};out.append(e)})}
 function refresh(){controls();thumbs();draw()}
 function rememberAnd(fn){const before=clone(state);fn();refresh();save(before)}
 function coords(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*pageW/r.width,y:(e.clientY-r.top)*pageH/r.height}}
@@ -68,7 +69,9 @@ $('logo-square-remove').onclick=()=>rememberAnd(()=>{state.brand.square=null;if(
 $('brand-placement').onchange=e=>{const p=e.target.value;if(p==='corner'&&!state.brand.square||(['top','bottom'].includes(p)&&!state.brand.wordmark)){say('請先上載相應標誌',true);controls();return}rememberAnd(()=>{const before=area();state.brand.placement=p;B.remapFrames(state,before,area())})};
 $('brand-size').onchange=e=>rememberAnd(()=>{if(state.brand.placement==='corner')state.brand.squareSize=Number(e.target.value)/100;else state.brand.wordmarkSize=Number(e.target.value)/100});
 $('brand-padding').onchange=e=>rememberAnd(()=>state.brand.padding=Number(e.target.value));
-$('files').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const a=await readFile(f,40*1024*1024),before=clone(state),id=images.length;photos.push({name:a.name,src:a.src});images.push(a.image);Object.assign(state.slots[selected],{photo:id,x:.5,y:.5,zoom:1});refresh();save(before);say('已換入相片')}catch(err){say(err.message,true)}finally{e.target.value=''}};
+// Capture the slot and invalidate older work before any asynchronous file read.
+// This keeps a later selection authoritative, even when an earlier decode finishes last.
+$('files').onchange=async e=>{const f=e.target.files[0];if(!f)return;const slotIndex=selected,token=(uploadTokens[slotIndex]||0)+1;uploadTokens[slotIndex]=token;try{const a=await readFile(f,40*1024*1024);if(uploadTokens[slotIndex]!==token)return;const before=clone(state),id=images.length;photos.push({name:a.name,src:a.src});images.push(a.image);Object.assign(state.slots[slotIndex],{photo:id,x:.5,y:.5,zoom:1});refresh();save(before);say('已換入相片')}catch(err){if(uploadTokens[slotIndex]===token)say(err.message,true)}finally{e.target.value=''}};
 async function exportJpg(){if(!ready)return;try{const out=document.createElement('canvas');out.width=pageW;out.height=pageH;C.draw(out.getContext('2d'),images,state);const blob=await new Promise((yes,no)=>out.toBlob(x=>x?yes(x):no(Error('JPG輸出失敗')),'image/jpeg',.96));if(downloadUrl)URL.revokeObjectURL(downloadUrl);downloadUrl=URL.createObjectURL(blob);const a=$('download-fallback');a.href=downloadUrl;a.download='dotai-social-'+pageW+'x'+pageH+'.jpg';a.hidden=false;a.click();say('JPG 已準備好 · '+pageW+' × '+pageH)}catch(err){say(err.message,true)}}
 $('export-top').onclick=exportJpg;$('export-bottom').onclick=exportJpg;
 try{images.push(...await Promise.all(photos.map(p=>load(p.src))));ready=true;refresh();$('initial-preview').hidden=true;$('export-top').disabled=false;$('export-bottom').disabled=false;say('四張示範圖已就位 · 直接拖動相片或相框') }catch(err){say(err.message,true)}
