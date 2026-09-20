@@ -4,6 +4,8 @@ Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/direct-photo-flex-lay
 
 ## Current: direct photo tools and flexible shared dividers
 
+- Follow-up: double-click now selects rather than opens the replacement picker; explicit upload remains available. Command/Ctrl Z and Shift redo share button history, excluding text-editing targets. Selecting another template clears inherited slant and cut coordinates. Single-frame slant is not implemented: awaiting clarification whether the requested scope is one frame or one template. All 17 suites and privacy checks passed; real browser acceptance remains pending.
+
 - Empty start with explicit optional demo. First real import replaces all demo slots, including via single-file replacement. Reset returns to empty; image-dependent controls/exports are disabled until photos exist.
 - Contextual canvas toolbar exposes zoom, centre, draggable swap grip and make-hero. Wheel zoom selects the photo under the pointer and groups a burst into one undo. Panning stays separate from resizing and works through slanted clips (verified with real stripe pixels).
 - Thumbnails can be dragged to another thumbnail or canvas frame. Swap grip and Shift-pointer drag allow canvas-target swapping. Photo crop/zoom travels with the photo; layout proportions stay put.

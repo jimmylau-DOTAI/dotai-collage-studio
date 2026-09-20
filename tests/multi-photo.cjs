@@ -36,8 +36,8 @@ const copy=v=>JSON.parse(JSON.stringify(v));
   await batch([]);assert.deepEqual(current,preserved,'Cancelling picker preserves artwork');
   await batch([file('one.png','#AA0000')]);assert.equal(current.slots.length,1);el('undo').click();assert.deepEqual(current,preserved,'One undo restores all previous photos/layout');el('redo').click();assert.equal(current.slots.length,1);
   let pickerCalls=0;el('files').click=()=>pickerCalls++;
-  window.document.querySelector('.photo').dispatchEvent(new window.MouseEvent('dblclick',{bubbles:true}));assert.equal(pickerCalls,1);
-  const dbl=new window.MouseEvent('dblclick',{clientX:200,clientY:200,bubbles:true});el('canvas').dispatchEvent(dbl);assert.equal(pickerCalls,2,'Canvas double-click also opens replacement picker');
+  window.document.querySelector('.photo').dispatchEvent(new window.MouseEvent('dblclick',{bubbles:true}));assert.equal(pickerCalls,0);
+  const dbl=new window.MouseEvent('dblclick',{clientX:200,clientY:200,bubbles:true});el('canvas').dispatchEvent(dbl);assert.equal(pickerCalls,0,'Canvas double-click selects without opening replacement picker');
   // A striped source makes crop movement observable in real pixels, not just state.
   const source=createCanvas(600,200),ctx=source.getContext('2d');['red','lime','blue'].forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(i*200,0,200,200)});
   await upload('files',new window.File([source.toBuffer('image/png')],'stripes.png',{type:'image/png'}));
