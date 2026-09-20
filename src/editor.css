@@ -97,6 +97,11 @@ canvas.dragging { cursor: grabbing; }
 .logo-preview { display: block; width: 100%; height: 54px; object-fit: contain; background: #F5F8FF; border: 1px solid var(--line); border-radius: 7px; margin: 8px 0; padding: 6px; }
 .logo-preview.square { object-position: left center; }
 .saved-colors { margin-top: 8px; }
+.saved-color { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 4px; align-items: stretch; }
+.saved-color + .saved-color { margin-top: 5px; }
+.saved-color .swatch { min-width: 0; }
+.saved-color-action { min-height: 44px; padding: 5px 6px; border: 1px solid var(--control-line); border-radius: 6px; background: white; font-size: 10px; }
+.saved-color-action:hover { background: var(--selected); }
 .position-actions { display: flex; gap: 8px; margin: 10px 0; }
 .position-actions button { flex: 1; font-size: 11px; }
 .replace-label { position: relative; display: flex; min-height: 44px; align-items: center; justify-content: center; color: var(--brand-navy); background: var(--selected); border: 1px dashed var(--control-line); padding: 9px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; }
