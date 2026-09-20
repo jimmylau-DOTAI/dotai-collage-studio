@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict');
+const {openEditor}=require('./helpers/editor-harness.cjs');
+(async()=>{const a=await openEditor();try{const {el,pointer}=a,C=a.window.CollageCore;let s;const draw=C.draw;C.draw=(ctx,images,state,...args)=>{s=JSON.parse(JSON.stringify(state));return draw(ctx,images,state,...args)};
+ el('canvas-zoom-in').click();el('undo').click();const before=JSON.parse(JSON.stringify(s)),boxes=JSON.parse(JSON.stringify(C.frameBoxes(s))),b=boxes[0];
+ pointer('pointerdown',b.x+b.w,b.y+b.h);pointer('pointermove',b.x+b.w+150,b.y+b.h+150);pointer('pointerup',b.x+b.w+150,b.y+b.h+150);
+ assert(s.slots[0].zoom>1,'Photo corner drag must zoom image');assert.deepEqual(JSON.parse(JSON.stringify(C.frameBoxes(s))),boxes,'Photo zoom leaves frames fixed');
+ el('undo').click();assert.deepEqual(s,before);
+ pointer('pointerdown',b.x+b.w/2,b.y);pointer('pointerup',b.x+b.w/2,b.y);assert.equal(el('canvas').dataset.mode,'frame','Clicking edge selects frame mode');
+ pointer('pointerdown',b.x+b.w/2,b.y+b.h/2);pointer('pointerup',b.x+b.w/2,b.y+b.h/2);assert.equal(el('canvas').dataset.mode,'crop');
+ assert.equal(a.errors.length,0);console.log('PASS: corner crop zoom, fixed frames, undo and edge/interior modes');
+}finally{a.close()}})().catch(e=>{console.error(e);process.exitCode=1});

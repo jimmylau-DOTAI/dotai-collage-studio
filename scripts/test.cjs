@@ -1,7 +1,7 @@
 const {spawnSync} = require('node:child_process');
 const path = require('node:path');
 const root = path.join(__dirname,'..');
-const suites=['distribution','brand','shapes','reference','editor','dom','photo-upload','interaction','brand-transitions','palette','brand-ui','multi-photo','constrained','slant','direct-flex','flex-geometry','selection-history','hold-swap'];
+const suites=['distribution','brand','shapes','reference','editor','dom','photo-upload','interaction','brand-transitions','palette','brand-ui','multi-photo','constrained','slant','direct-flex','flex-geometry','selection-history','hold-swap','corner-crop'];
 for (const test of suites) {
   const result=spawnSync(process.execPath,[`tests/${test}.cjs`],{cwd:root,stdio:'inherit'});
   if(result.error)throw result.error;

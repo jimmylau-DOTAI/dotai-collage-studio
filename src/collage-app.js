@@ -10,6 +10,7 @@ let pageW=1080,pageH=1080,holdTimer=null,frameMode=false;
 let layoutCount=0,batchToken=0,wheelTimer=null,dragSource=null,dropTarget=-1;
 $('photos').before($('batch-upload-ui').content.cloneNode(true));
 $('layouts').after($('slant-ui').content.cloneNode(true));
+$('undo').parentElement.prepend($('frame-mode'));$('canvas-wrap').append($('canvas-tools'));
 const fileInputs=[...document.querySelectorAll('input[type=file]')];fileInputs.forEach(input=>input.disabled=true);$('empty-add').disabled=true;$('show-demo').disabled=true;
 const logoTokens={square:0,wordmark:0};
 function finishZoom(){window.clearTimeout(wheelTimer);const before=zoomBefore;zoomBefore=null;if(before&&changed(before))save(before)}
@@ -20,13 +21,16 @@ function area(){return B.measure({w:pageW,h:pageH},state.brand).photoArea}
 function sync(){const z=C.size(state);pageW=z.w;pageH=z.h;[canvas,overlay].forEach(c=>{c.width=pageW;c.height=pageH});$('canvas-wrap').style.aspectRatio=pageW+'/'+pageH;$('size-label').textContent=state.ratio+' · '+pageW+' × '+pageH}
 function load(src){return new Promise((yes,no)=>{const i=new Image();i.onload=()=>yes(i);i.onerror=()=>no(new Error('圖片讀取失敗'));i.src=src})}
 function box(){return C.frameBoxes(state)[selected]}
+function photoHandles(b){return(b.mask?.points||[[0,0],[1,0],[1,1],[0,1]]).map(([x,y])=>({x:b.x+x*b.w,y:b.y+y*b.h}))}
+function edgeAt(p,tolerance){const boxes=C.frameBoxes(state);for(let i=boxes.length-1;i>=0;i--){const points=photoHandles(boxes[i]);for(let j=0;j<points.length;j++){const a=points[j],b=points[(j+1)%points.length],dx=b.x-a.x,dy=b.y-a.y,t=C.clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1));if(Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)<=tolerance)return i}}return-1}
 function draw(){
  if(!ready)return;C.draw(ctx,images,state);ox.clearRect(0,0,pageW,pageH);
  if(!state.slots.length)return;
  const b=box(),scale=pageW/(canvas.getBoundingClientRect().width||540);
- ox.strokeStyle='#0059FF';ox.lineWidth=2*scale;
+ $('canvas-tools').style.left=(C.clamp((b.x+b.w/2)/pageW,.22,.78)*100)+'%';$('canvas-tools').style.top=(C.clamp((b.y+18*scale)/pageH,.02,.88)*100)+'%';
+ ox.strokeStyle=frameMode?'#D16A00':'#0059FF';ox.lineWidth=2*scale;
  if(b.mask?.kind==='polygon'){ox.beginPath();b.mask.points.forEach(([x,y],i)=>ox[i?'lineTo':'moveTo'](b.x+x*b.w,b.y+y*b.h));ox.closePath();ox.stroke()}else ox.strokeRect(b.x,b.y,b.w,b.h);
- ox.fillStyle='#FFFFFF';for(const h of (frameMode?C.flexHandles(state,selected):[])){ox.beginPath();ox.arc(h.x,h.y,6*scale,0,Math.PI*2);ox.fill();ox.stroke()}
+ ox.fillStyle='#FFFFFF';for(const h of (frameMode?C.flexHandles(state,selected):photoHandles(b))){ox.beginPath();ox.arc(h.x,h.y,6*scale,0,Math.PI*2);ox.fill();ox.stroke()}
  if(dropTarget>=0&&dropTarget!==selected){const target=C.frameBoxes(state)[dropTarget];if(target){ox.setLineDash([6*scale,4*scale]);ox.strokeRect(target.x,target.y,target.w,target.h);ox.setLineDash([])}}
 }
 function controls(){
@@ -76,11 +80,11 @@ canvas.addEventListener('dblclick',e=>{if(!ready)return;const p=coords(e),rects=
 $('slant-toggle').onclick=()=>rememberAnd(()=>{state.slant=state.slant.x||state.slant.y?{x:0,y:0}:{x:.08,y:.06}});
 $('slant-reset').onclick=()=>rememberAnd(()=>{state.slant={x:0,y:0};state.cut={top:.5,bottom:.5,left:.5,right:.5};state.slots.forEach(s=>{delete s.frame;delete s.mask})});
 ['x','y'].forEach(axis=>{$('slant-'+axis).oninput=e=>{settleGesture();zoomBefore??=clone(state);state.slant[axis]=Number(e.target.value)/100;controls();draw()};$('slant-'+axis).onchange=finishZoom;$('slant-'+axis).onblur=finishZoom});
-canvas.addEventListener('pointerdown',e=>{if(!ready||gesture||e.button!==0||!state.slots.length)return;finishZoom();const p=coords(e),scale=pageW/(canvas.getBoundingClientRect().width||540),handle=frameMode&&!e.shiftKey&&C.flexHandles(state,selected).find(h=>Math.hypot(h.x-p.x,h.y-p.y)<10*scale);const i=handle?selected:atPoint(p);if(i<0)return;if(!handle)frameMode=false;selected=i;const b=C.frameBoxes(state)[i],slot=state.slots[i],g=C.geometry(images[slot.photo],b,slot);gesture={id:e.pointerId,index:i,action:handle?'flex':e.shiftKey?'swap':'crop',corner:handle?.corner,start:p,b,slot:{x:slot.x,y:slot.y},g,before:clone(state),moved:false};canvas.setPointerCapture(e.pointerId);window.clearTimeout(holdTimer);if(gesture.action==='crop'&&state.slots.length>1)holdTimer=window.setTimeout(()=>{if(!gesture||gesture.moved)return;gesture.action='swap';canvas.style.cursor='grabbing';say('已抓起相片：拖去另一張交換，放開取消');draw()},450);refresh()});
+canvas.addEventListener('pointerdown',e=>{if(!ready||gesture||e.button!==0||!state.slots.length)return;finishZoom();const p=coords(e),scale=pageW/(canvas.getBoundingClientRect().width||540),handle=frameMode&&!e.shiftKey&&C.flexHandles(state,selected).find(h=>Math.hypot(h.x-p.x,h.y-p.y)<10*scale);const ph=!frameMode&&!e.shiftKey&&photoHandles(box()).find(h=>Math.hypot(h.x-p.x,h.y-p.y)<10*scale),edge=!handle&&!ph&&!e.shiftKey?edgeAt(p,5*scale):-1;const i=handle||ph?selected:edge>=0?edge:atPoint(p);if(i<0)return;if(!handle)frameMode=edge>=0;selected=i;const b=C.frameBoxes(state)[i],slot=state.slots[i],g=C.geometry(images[slot.photo],b,slot);gesture={id:e.pointerId,index:i,action:handle?'flex':ph?'photo-scale':edge>=0?'frame-select':e.shiftKey?'swap':'crop',corner:handle?.corner,start:p,b,slot:{x:slot.x,y:slot.y,zoom:slot.zoom},g,before:clone(state),moved:false};canvas.setPointerCapture(e.pointerId);window.clearTimeout(holdTimer);if(gesture.action==='crop'&&state.slots.length>1)holdTimer=window.setTimeout(()=>{if(!gesture||gesture.moved)return;gesture.action='swap';canvas.style.cursor='grabbing';say('已抓起相片：拖去另一張交換，放開取消');draw()},450);refresh()});
 canvas.addEventListener('pointermove',e=>{if(!gesture||gesture.id!==e.pointerId)return;const p=coords(e),dx=p.x-gesture.start.x,dy=p.y-gesture.start.y;if(!gesture.moved&&Math.abs(dx)+Math.abs(dy)<2)return;gesture.moved=true;window.clearTimeout(holdTimer);
  const s0=state.slots[gesture.index];
  if(gesture.action==='flex')state.customCells=C.resizeLayout(gesture.before,gesture.index,gesture.corner,p);
- else if(gesture.action==='swap')dropTarget=atPoint(p);
+ else if(gesture.action==='photo-scale'){const cx=gesture.b.x+gesture.b.w/2,cy=gesture.b.y+gesture.b.h/2,start=Math.hypot(gesture.start.x-cx,gesture.start.y-cy);s0.zoom=C.clamp(gesture.slot.zoom*Math.hypot(p.x-cx,p.y-cy)/Math.max(1,start),1,3)}else if(gesture.action==='frame-select')return;else if(gesture.action==='swap')dropTarget=atPoint(p);
  else{if(gesture.g.overflowX)s0.x=C.clamp(gesture.slot.x-dx/gesture.g.overflowX);if(gesture.g.overflowY)s0.y=C.clamp(gesture.slot.y-dy/gesture.g.overflowY)}
  refresh()});
 function finish(e,cancel=false){if(!gesture||gesture.id!==e.pointerId)return;window.clearTimeout(holdTimer);canvas.style.cursor='';const g=gesture,target=dropTarget;gesture=null;dropTarget=-1;if(cancel){state=g.before;refresh();return}if(g.action==='swap'){if(g.moved)swapPhotos(g.index,target);draw();say(target>=0&&target!==g.index?'已交換相片；可復原':'已返回調構圖');return}if(g.moved&&changed(g.before))save(g.before);draw()}
