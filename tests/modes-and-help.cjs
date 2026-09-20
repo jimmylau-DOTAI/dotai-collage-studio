@@ -1,0 +1,20 @@
+const assert=require('node:assert/strict');const {openEditor}=require('./helpers/editor-harness.cjs');
+(async()=>{const a=await openEditor();try{const {window,el,pointer}=a,C=window.CollageCore,doc=window.document;let s;const draw=C.draw;C.draw=(ctx,im,state,...args)=>{s=JSON.parse(JSON.stringify(state));return draw(ctx,im,state,...args)};
+ assert(el('slant-mode'),'Slant has its own top-level mode');
+ el('slant-mode').click();assert.equal(el('slant-mode').getAttribute('aria-pressed'),'true');assert.equal(el('frame-mode').getAttribute('aria-pressed'),'false');assert(!el('selected-label').textContent.includes('%'));
+ pointer('pointerdown',540,18);pointer('pointermove',590,18);pointer('pointerup',590,18);const tilted=JSON.parse(JSON.stringify(s)),boxes=JSON.stringify(C.frameBoxes(s));
+ el('frame-mode').click();el('photo-mode').click();assert.deepEqual(s,tilted,'Mode changes preserve all artwork');
+ const ids=s.slots.map(x=>x.photo);el('swap-select').click();assert(!el('swap-cancel').hidden);assert(el('mode-hint').textContent.includes('另一張'));
+ doc.querySelectorAll('.photo')[1].click();assert.deepEqual(s.slots.map(x=>x.photo),[ids[1],ids[0],ids[2],ids[3]]);assert.equal(JSON.stringify(C.frameBoxes(s)),boxes);assert(el('swap-cancel').hidden);
+ el('undo').click();assert.deepEqual(s,tilted);el('swap-select').click();el('swap-cancel').click();assert.deepEqual(s,tilted);
+ el('swap-select').click();doc.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert(el('swap-cancel').hidden);
+ // Canvas targets use the same explicit exchange flow, not a crop gesture.
+ el('photo-mode').click();doc.querySelectorAll('.photo')[0].click();el('swap-select').click();doc.querySelectorAll('.photo')[0].click();assert(!el('swap-cancel').hidden,'Same target keeps exchange pending');
+ const target=C.frameBoxes(s)[1];pointer('pointerdown',target.x+target.w/2,target.y+target.h/2);pointer('pointerup',target.x+target.w/2,target.y+target.h/2);assert(el('swap-cancel').hidden);assert.equal(s.slots[0].photo,ids[1]);assert.equal(JSON.stringify(C.frameBoxes(s)),boxes);el('undo').click();assert.deepEqual(s,tilted);
+ el('slant-mode').click();doc.querySelector('.stage').dispatchEvent(new window.MouseEvent('pointerdown',{bubbles:true,button:0}));assert.equal(el('frame-mode').getAttribute('aria-pressed'),'true');assert.equal(el('slant-mode').getAttribute('aria-pressed'),'false');assert.deepEqual(s,tilted,'Outside selects frame without changing the slant');
+ el('help-toggle').click();assert(!el('editor-help').hidden);doc.dispatchEvent(new window.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert(el('editor-help').hidden);
+ doc.querySelector('input').dispatchEvent(new window.KeyboardEvent('keydown',{key:'?',bubbles:true}));assert(el('editor-help').hidden,'Typing does not open help');doc.dispatchEvent(new window.KeyboardEvent('keydown',{key:'?',bubbles:true}));assert(!el('editor-help').hidden);el('help-close').click();assert(el('editor-help').hidden);
+ el('reset').click();assert(el('slant-mode').disabled);el('show-demo').click();
+ await a.upload('add-files',a.file('one.png','#336699'));assert(el('slant-mode').disabled);assert(el('swap-select').disabled);assert(el('mode-hint').textContent.includes('至少需要兩張'));
+ assert.equal(a.errors.length,0);console.log('PASS: three exclusive modes, non-destructive switching, click swap/cancel/undo and help');
+}finally{a.close()}})().catch(e=>{console.error(e);process.exitCode=1});

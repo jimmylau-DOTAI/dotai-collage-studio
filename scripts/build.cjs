@@ -32,7 +32,7 @@ async function demo(index) {
   const preview=createCanvas(1080,1080);
   C.draw(preview.getContext('2d'),await Promise.all(photos.map(p=>loadImage(p.src))),C.defaults());
   const replacements={
-    __ICON_DATA__:JSON.stringify(Object.fromEntries(['photo','frame','layout-grid','download','arrow-back-up','arrow-forward-up','focus-centered','layout-dashboard','brand-sketch','plus','minus','rotate-2'].map(name=>[name,fs.readFileSync(path.join(root,'node_modules/@tabler/icons/icons/outline',name+'.svg'),'utf8')]))),
+    __ICON_DATA__:JSON.stringify(Object.fromEntries(['help','arrows-exchange','photo','frame','layout-grid','download','arrow-back-up','arrow-forward-up','focus-centered','layout-dashboard','brand-sketch','plus','minus','rotate-2'].map(name=>[name,fs.readFileSync(path.join(root,'node_modules/@tabler/icons/icons/outline',name+'.svg'),'utf8')]))),
     __BRAND_JS__:fs.readFileSync(path.join(root,'src/collage-brand.js'),'utf8').replace(/<\/script/gi,'<\\/script'),
     __PALETTE_JS__:fs.readFileSync(path.join(root,'src/collage-palette.js'),'utf8').replace(/<\/script/gi,'<\\/script'),
     __EDITOR_CSS__:fs.readFileSync(path.join(root,'src/editor.css'),'utf8'),

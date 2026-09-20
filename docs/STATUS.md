@@ -2,7 +2,15 @@
 
 Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/light-editor-redesign`.
 
-## Current: light editor and mobile tools
+## Current: three editing modes and discoverable actions
+
+- Photo, Frame and Slant are exclusive, labelled modes above the canvas. Switching modes preserves artwork; active gestures remain locked. Slant is explicit, not a nested frame toggle, with its own straighten action. Outside/edge clicks select Frame; photo interiors select Photo.
+- Explicit Exchange selects a second photo on the canvas or in the photo list; cancel/Escape leave the artwork unchanged. Original hold/Shift/thumbnail drag gestures remain available. Fewer than two photos disables exchange and slant with a visible explanation.
+- A short mode-aware hint replaces the long always-visible gesture paragraph. The help button or `?` discloses full instructions and shortcuts; Escape closes it. Repeated pointer moves do not repeat identical live-region text.
+- Verification: 24 automated suites plus privacy checks passed. After the final hint-copy adjustment, the focused modes/help suite (including the single-photo disabled-state check), rebuild and whitespace check passed. Browser visuals and real touch acceptance remain PENDING, not inferred from native Canvas/jsdom checks.
+- Local only: no push, PR or deployment. The original checkout is unchanged. Download current artwork before refreshing; editable project save/load is not implemented.
+
+## Previous: light editor and mobile tools
 
 - Applied user-supplied light references: white header/panels, gray-blue workspace and blue selection. Official DotAI logo and exported artwork colors are unchanged.
 - Color-block template previews follow the selected output ratio, with category filters, selected marks and a visible empty-category explanation. No real photos are used in template previews.

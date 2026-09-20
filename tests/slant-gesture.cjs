@@ -1,10 +1,10 @@
 const assert=require('node:assert/strict');const {openEditor}=require('./helpers/editor-harness.cjs');
 (async()=>{const a=await openEditor();try{const {el,pointer,window}=a,C=window.CollageCore;let s;const draw=C.draw;C.draw=(ctx,im,state,...args)=>{s=JSON.parse(JSON.stringify(state));return draw(ctx,im,state,...args)};
- assert(el('frame-slant'),'Dedicated slant operation exists');el('frame-mode').click();el('frame-slant').click();
+ assert(el('slant-mode'),'Dedicated slant operation exists');el('slant-mode').click();
  const before=JSON.parse(JSON.stringify(s)),boxes=JSON.stringify(C.frameBoxes(s));pointer('pointerdown',540,18);pointer('pointermove',600,18);pointer('pointerup',600,18);
  assert(s.slant.x<0,'Top diamond changes angle');assert.notEqual(JSON.stringify(C.frameBoxes(s)),boxes);assert(!s.customCells,'Slant does not resize proportions');
  el('undo').click();assert.deepEqual(s,before);el('redo').click();const tilted=JSON.stringify(C.frameBoxes(s));
  el('photo-mode').click();el('canvas-zoom-in').click();assert.equal(JSON.stringify(C.frameBoxes(s)),tilted);el('undo').click();assert.equal(s.slots[0].zoom,1);
- el('frame-mode').click();el('frame-proportion').click();assert.equal(el('frame-proportion').getAttribute('aria-pressed'),'true');
+ el('frame-mode').click();assert.equal(el('frame-mode').getAttribute('aria-pressed'),'true');assert.equal(el('slant-mode').getAttribute('aria-pressed'),'false');
  assert.equal(a.errors.length,0);console.log('PASS: diamond slant changes angle, preserves proportions, crop and undo');
 }finally{a.close()}})().catch(e=>{console.error(e);process.exitCode=1});
