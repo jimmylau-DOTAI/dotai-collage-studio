@@ -182,6 +182,10 @@ details .full { margin-top: 8px; }
 .position-mini.tl::after { left:0; top:0; }.position-mini.tr::after { right:0; top:0; }.position-mini.bl::after { left:0; bottom:0; }.position-mini.br::after { right:0; bottom:0; }
 .position-mini.top::after { left:0; top:0; width:100%; height:5px; }.position-mini.bottom::after { left:0; bottom:0; width:100%; height:5px; }
 .brand-secondary { display:flex; gap:8px; }.brand-secondary button { flex:1; min-height:44px; font-size:12px; }
+.brand-quick-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+.brand-quick-actions button { min-width:0; min-height:44px; padding:8px 4px; font-size:12px; }
+#logo-actions { display:flex; gap:4px; align-items:center; }
+.canvas-tools #canvas-logo-remove { width:auto; padding:0 8px; font-size:12px; }
 .check-row { display:flex; align-items:center; gap:8px; min-height:44px; font-size:13px; }
 .check-row input { width:20px; height:20px; }
 .text-action { border:0; background:none; color:var(--muted); text-decoration:underline; min-height:44px; font-size:12px; }

@@ -1,8 +1,15 @@
 # Current local handoff — 2026-09-20
 
-Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/universal-brand-tools`.
+Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/logo-direct-controls`.
 
-## Current: universal colors and local logo library
+## Current: direct logo sizing and discoverable deletion
+
+- Logo delete/hide and size controls are visible below the selected logo name, outside advanced settings. Canvas logo selection adds its own proportional corner handles and zoom/delete actions above the artwork.
+- Logo hit testing takes precedence over photos. Dragging a logo corner never pans the photo underneath; corner anchoring, optional backing and top/bottom-band reflow continue through the same brand geometry. Corner controls stay inside the canvas when the logo is flush to an edge. An entire drag is one undoable change; pointer cancellation restores it.
+- Switching to a photo or an editing mode leaves logo editing; logo selection suppresses photo wheel/arrow actions. Saved-kit persistence still requires an explicit save after deleting/changing a logo.
+- All 27 suites, privacy and whitespace checks passed. Focused checks cover visible controls, direct scaling and size buttons, square/portrait placements, proportions, cancel and undo. Browser and real-touch acceptance remain pending. No external writes or deployment.
+
+## Previous: universal colors and local logo library
 
 - Replaced the four brand-specific artwork swatches with twelve general neutral/warm/cool choices; white remains the default. Saved colors now occupy a full row, with rename/remove under a disclosure rather than squeezed beside the color.
 - Visible brand controls use one multi-file logo library (up to eight), with original aspect ratios/colors, user-defined light/dark-background labels and one active logo. Old square/wordmark controls remain hidden for compatibility; new assets are not preseeded with DotAI marks.

@@ -12,17 +12,19 @@
    <label class="replace-label">＋ 加入標誌<input id="brand-files" class="file-input" type="file" multiple accept="image/png,image/jpeg,image/webp"></label>
    <p id="logo-count" class="small-note"></p><div id="brand-library" class="logo-library" aria-label="標誌資料庫"></div>
    <div id="brand-options" hidden>
-    <div class="brand-active-row"><span id="logo-active-name"></span><button id="logo-hide" class="secondary">暫不顯示</button></div>
+    <div class="brand-active-row"><span id="logo-active-name"></span></div>
+    <div class="brand-quick-actions"><button id="logo-hide" class="secondary">暫不顯示</button><button id="logo-remove" class="secondary">刪除標誌</button></div>
+    <label class="range-label" for="logo-size">標誌大小 <output id="logo-size-value"></output></label><input id="logo-size" type="range" min="4" max="50" value="16">
+    <p class="small-note">亦可點畫布上嘅標誌，再拖角點調大細；刪錯可按復原。</p>
     <h3>放喺邊？</h3><div id="brand-positions" class="brand-positions" role="group" aria-label="標誌位置"></div>
     <label class="brand-field">底板<select id="logo-surface"><option value="none">直接放圖上</option><option value="badge">小底牌</option><option value="band">全闊色帶</option></select></label>
     <div id="logo-backing-controls"><label class="brand-field">底板顏色<select id="logo-color-mode"><option value="match">跟作品底色</option><option value="custom">獨立選色</option></select></label><label class="color-wrap">自選底板色<input id="logo-color" type="color" value="#FFFFFF"></label></div>
-    <details class="brand-adjustments"><summary>大小、邊距及版本</summary>
-     <label class="range-label" for="logo-size">標誌大小 <output id="logo-size-value"></output></label><input id="logo-size" type="range" min="4" max="50" value="16">
+    <details class="brand-adjustments"><summary>邊距及版本</summary>
      <label class="range-label" for="logo-padding">邊距 <output id="logo-padding-value"></output></label><input id="logo-padding" type="range" min="0" max="64" value="24">
      <button id="logo-flush" class="secondary full">貼齊畫布邊</button><p id="logo-edge-note" class="small-note"></p>
      <label class="check-row"><input id="logo-trim" type="checkbox">忽略透明留白</label><p class="small-note">只略過透明像素；白底圖片唔會自動去底，原檔不變。</p>
      <label class="brand-field">版本用途<select id="logo-tone"><option value="any">任何底色</option><option value="light">適合淺底</option><option value="dark">適合深底</option></select></label>
-     <div class="brand-secondary"><button id="logo-rename" class="secondary">改名</button><button id="logo-remove" class="secondary">移除此標誌</button></div>
+     <div class="brand-secondary"><button id="logo-rename" class="secondary">改名</button></div>
     </details>
    </div>
    <details class="brand-kit"><summary>儲存我的品牌</summary><p class="small-note">只存呢個瀏覽器，唔係雲端同步。包括標誌、擺位及底色；已命名色卡會另外自動保存。不會儲存活動相片。</p>

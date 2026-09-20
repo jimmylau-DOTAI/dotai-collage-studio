@@ -7,6 +7,7 @@ const photos=JSON.parse($('photo-data').textContent),images=[],history=[],future
 let state=C.defaults(),selected=0,ready=false,gesture=null,downloadUrl=null,zoomBefore=null,palette=null,brandStudio=null;
 state.slots=[];state.demo=false;
 let pageW=1080,pageH=1080,holdTimer=null,frameMode=false,frameTool='proportion';
+let logoSelected=false;
 let layoutCount=0,batchToken=0,wheelTimer=null,dragSource=null,dropTarget=-1,exchangeSource=null;
 $('photos').before($('batch-upload-ui').content.cloneNode(true));
 $('layouts').after($('slant-ui').content.cloneNode(true));
@@ -21,11 +22,41 @@ function area(){return B.measure({w:pageW,h:pageH},state.brand).photoArea}
 function sync(){const z=C.size(state);pageW=z.w;pageH=z.h;[canvas,overlay].forEach(c=>{c.width=pageW;c.height=pageH});$('canvas-wrap').style.aspectRatio=pageW+'/'+pageH;$('canvas-wrap').style.setProperty('--ratio',pageW/pageH);$('size-label').textContent=state.ratio+' · '+pageW+' × '+pageH}
 function load(src){return new Promise((yes,no)=>{const i=new Image();i.onload=()=>yes(i);i.onerror=()=>no(new Error('圖片讀取失敗'));i.src=src})}
 function box(){return C.frameBoxes(state)[selected]}
-function setMode(mode){if(gesture||!state.slots.length||(mode==='slant'&&state.slots.length<2))return;finishZoom();exchangeSource=null;frameMode=mode!=='photo';frameTool=mode==='slant'?'slant':'proportion';refresh()}
+function currentLogo(){return state.brand.library?.some(a=>a.id===state.brand.activeId)?B.measure(C.size(state),state.brand).logo:null}
+function logoHit(p){const b=currentLogo();return b&&p.x>=b.x&&p.x<=b.x+b.w&&p.y>=b.y&&p.y<=b.y+b.h}
+function logoHandles(b){const r=5*pageW/(canvas.getBoundingClientRect().width||540);return [[-1,-1],[1,-1],[1,1],[-1,1]].map(([x,y])=>({x:C.clamp(b.x+(x>0?b.w:0),r,pageW-r),y:C.clamp(b.y+(y>0?b.h:0),r,pageH-r),sign:{x,y}}))}
+function drawLogoSelection(){const b=currentLogo(),scale=pageW/(canvas.getBoundingClientRect().width||540);ox.strokeStyle='#2563EB';ox.lineWidth=2*scale;ox.strokeRect(b.x,b.y,b.w,b.h);ox.fillStyle='#FFFFFF';for(const h of logoHandles(b)){ox.fillRect(h.x-5*scale,h.y-5*scale,10*scale,10*scale);ox.strokeRect(h.x-5*scale,h.y-5*scale,10*scale,10*scale)}}
+const logoActions=document.createElement('div');logoActions.id='logo-actions';logoActions.hidden=true;
+logoActions.innerHTML='<button id="canvas-logo-smaller" aria-label="縮小標誌" title="縮小標誌">−</button><button id="canvas-logo-larger" aria-label="放大標誌" title="放大標誌">＋</button><button id="canvas-logo-remove">刪除標誌</button>';$('canvas-tools').append(logoActions);
+function syncLogoControls(){
+ if(!currentLogo()||!state.slots.length){logoSelected=false;updateHint()}
+ logoActions.hidden=!logoSelected;$('canvas-tools').setAttribute('aria-label',logoSelected?'所選標誌工具':'所選相片工具');
+ if(!logoSelected)return;
+ $('canvas').dataset.mode='logo';$('layout-name').textContent='標誌 · 拖角點調大細';$('selected-label').textContent='標誌 · '+Math.round(state.brand.size*100)+'%';
+ for(const id of ['photo-actions','frame-actions','slant-actions'])$(id).hidden=true;
+ for(const id of ['photo-mode','frame-mode','slant-mode'])$(id).setAttribute('aria-pressed','false');
+ updateHint();
+}
+function resizeLogoBy(delta){if(gesture||!currentLogo())return;const size=currentLogo().w/pageW;changeBrand(b=>{b.size=C.clamp(size+delta,.04,.5)})}
+$('canvas-logo-smaller').onclick=()=>resizeLogoBy(-.02);$('canvas-logo-larger').onclick=()=>resizeLogoBy(.02);
+$('canvas-logo-remove').onclick=()=>{logoSelected=false;$('logo-remove').click()};
+// The logo is painted above photos, so it wins hit testing before photo gestures.
+canvas.addEventListener('pointerdown',e=>{
+ if(!ready||gesture||e.button!==0||!state.slots.length||exchangeSource)return;
+ const p=coords(e),b=currentLogo(),scale=pageW/(canvas.getBoundingClientRect().width||540);
+ const distance=h=>Math.hypot(h.x-p.x,h.y-p.y);
+ const h=logoSelected&&b&&logoHandles(b).sort((a,b)=>distance(a)-distance(b)).find(h=>distance(h)<=22*scale);
+ if(!h&&!logoHit(p)){logoSelected=false;return}
+ e.stopImmediatePropagation();e.preventDefault();finishZoom();window.clearTimeout(holdTimer);logoSelected=true;
+ gesture={id:e.pointerId,action:h?'logo-scale':'logo-select',logo:{...b},sign:h?.sign,start:p,before:clone(state),moved:false};
+ canvas.setPointerCapture(e.pointerId);canvas.focus();refresh();
+},true);
+function setMode(mode){if(gesture||!state.slots.length||(mode==='slant'&&state.slots.length<2))return;finishZoom();exchangeSource=null;logoSelected=false;frameMode=mode!=='photo';frameTool=mode==='slant'?'slant':'proportion';refresh()}
 function completeExchange(index){const from=state.slots.indexOf(exchangeSource);if(from<0){exchangeSource=null;refresh();return}if(index===from){say('請揀另一張相片，或者按取消交換');return}exchangeSource=null;swapPhotos(from,index);refresh()}
 function updateHint(){
  let text;
  if(!state.slots.length)text='先加入相片，再揀排版。';
+ else if(logoSelected)text='標誌已選取：拖角點調大細，或用 ＋／−；點相片返回調構圖。';
  else if(exchangeSource)text='請點另一張相片交換；可點畫布或相片列表嘅縮圖。';
  else if(gesture?.action==='swap')text='已抓起相片：拖到另一張交換；放回原位或按 Esc 取消。';
  else if(gesture?.moved)text=gesture.action==='slant'?'正在調整分界角度。':gesture.action==='flex'?'正在調整相框比例，其他框會同步改變。':gesture.action==='photo-scale'?(state.slots[selected].zoom>=3?'已到放大上限 300%。':'正在調整相片大小，相框保持不變。'):'正在移動相片焦點。';
@@ -42,6 +73,7 @@ function photoHandles(b){return(b.mask?.points||[[0,0],[1,0],[1,1],[0,1]]).map((
 function edgeAt(p,tolerance){const boxes=C.frameBoxes(state);for(let i=boxes.length-1;i>=0;i--){const points=photoHandles(boxes[i]);for(let j=0;j<points.length;j++){const a=points[j],b=points[(j+1)%points.length],dx=b.x-a.x,dy=b.y-a.y,t=C.clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1));if(Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy)<=tolerance)return i}}return-1}
 function draw(){
  if(!ready)return;C.draw(ctx,images,state);ox.clearRect(0,0,pageW,pageH);
+ if(logoSelected&&currentLogo()){drawLogoSelection();return}
  if(!state.slots.length)return;
  const b=box(),scale=pageW/(canvas.getBoundingClientRect().width||540);
  // Contextual tools stay outside the artwork in normal document flow.
@@ -62,7 +94,7 @@ function controls(){
  $('bg-color').value=state.bg;$('brand-placement').value=state.brand.placement;const range=B.sizeRange(state.brand.placement);$('brand-size').min=range.min;$('brand-size').max=range.max;$('brand-size').value=Math.round((state.brand.placement==='corner'?state.brand.squareSize:state.brand.wordmarkSize)*100);$('brand-padding').value=state.brand.padding;
  $('brand-size').disabled=state.brand.placement==='none';$('brand-padding').disabled=state.brand.placement==='none';
  document.querySelectorAll('.layout').forEach(e=>e.setAttribute('aria-pressed',String(!state.customCells&&e.dataset.layout===state.layout)));
- if(palette)palette.sync();if(brandStudio)brandStudio.sync();
+ if(palette)palette.sync();if(brandStudio)brandStudio.sync();syncLogoControls();
  $('logo-square-remove').disabled=!state.brand.square;$('logo-wordmark-remove').disabled=!state.brand.wordmark;
  [['square','logo-square-preview'],['wordmark','logo-wordmark-preview']].forEach(([kind,id])=>{const preview=$(id),asset=state.brand[kind];preview.hidden=!asset;if(asset)preview.src=asset.src});
  save();
@@ -75,9 +107,9 @@ function thumbs(){const out=$('photos');out.replaceChildren();state.slots.forEac
  image.src=thumbnail(images[s.photo]);image.alt='相片 '+(i+1)+' 預覽';image.draggable=false;label.textContent='相片 '+(i+1);e.append(image,label);e.onclick=()=>selectPhoto(i);e.ondblclick=()=>selectPhoto(i);remove.className='photo-remove';remove.textContent='移除';remove.setAttribute('aria-label','移除相片 '+(i+1));remove.disabled=state.slots.length===1;remove.onclick=()=>{if(state.slots.length===1)return;batchToken++;rememberAnd(()=>{state.slots=state.slots.filter((_,index)=>index!==i);if(selected>i)selected--;reflow()});say('已移除相片；可按復原還原')};card.append(e,remove);out.append(card)
 })}
 function reflow(){delete state.customCells;state.layout=C.layoutsFor(state.slots.length)[0].id;state.cut={top:.5,bottom:.5,left:.5,right:.5};state.slots.forEach(s=>{delete s.frame;delete s.mask});if(state.slots.length===1)state.slant={x:0,y:0}}
-function selectPhoto(index){if(gesture)return;if(exchangeSource){completeExchange(index);return}frameMode=false;finishZoom();selected=index;syncPhotoSelection();controls();draw();canvas.focus()}
+function selectPhoto(index){if(gesture)return;if(exchangeSource){completeExchange(index);return}logoSelected=false;frameMode=false;finishZoom();selected=index;syncPhotoSelection();controls();draw();canvas.focus()}
 function refresh(){controls();thumbs();draw()}
-document.querySelector('.stage').addEventListener('pointerdown',e=>{if(!ready||gesture||!state.slots.length||e.button!==0)return;if(e.target.matches('.stage,.stage-caption,.stage-top,.stage-top span,#status')){finishZoom();frameMode=true;frameTool='proportion';exchangeSource=null;refresh()}});
+document.querySelector('.stage').addEventListener('pointerdown',e=>{if(!ready||gesture||!state.slots.length||e.button!==0)return;if(e.target.matches('.stage,.stage-caption,.stage-top,.stage-top span,#status')){finishZoom();logoSelected=false;frameMode=true;frameTool='proportion';exchangeSource=null;refresh()}});
 function settleGesture(){if(gesture)finish({pointerId:gesture.id})}
 function rememberAnd(fn){settleGesture();finishZoom();exchangeSource=null;const before=clone(state);fn();refresh();if(changed(before))save(before)}
 function coords(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*pageW/r.width,y:(e.clientY-r.top)*pageH/r.height}}
@@ -97,22 +129,22 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(gesture){finish(
 $('empty-add').onclick=()=>$('add-files').click();
 $('show-demo').onclick=()=>rememberAnd(()=>{const {brand,bg}=state;state=C.defaults();state.brand=brand;state.bg=bg;state.demo=true;selected=0});
 $('make-hero').onclick=()=>{if(state.slots.length<2)return;rememberAnd(()=>{let k=0;const n=state.slots.length-1;state.customCells=state.slots.map((_,i)=>i===selected?[0,0,.65,1]:[.65,k++/n,.35,1/n])});say('已將相片 '+(selected+1)+' 設為最大主相；白色圓點可再調比例')};
-canvas.addEventListener('wheel',e=>{if(!ready||gesture)return;const i=atPoint(coords(e));if(i<0)return;e.preventDefault();if(i!==selected){finishZoom();selected=i}zoomBefore??=clone(state);const delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?300:1);state.slots[i].zoom=C.clamp(state.slots[i].zoom*Math.exp(-C.clamp(delta,-200,200)*.002),1,3);controls();draw();syncPhotoSelectionOnly();window.clearTimeout(wheelTimer);wheelTimer=window.setTimeout(finishZoom,180)},{passive:false});
+canvas.addEventListener('wheel',e=>{if(!ready||gesture||logoSelected)return;const i=atPoint(coords(e));if(i<0)return;e.preventDefault();if(i!==selected){finishZoom();selected=i}zoomBefore??=clone(state);const delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?300:1);state.slots[i].zoom=C.clamp(state.slots[i].zoom*Math.exp(-C.clamp(delta,-200,200)*.002),1,3);controls();draw();syncPhotoSelectionOnly();window.clearTimeout(wheelTimer);wheelTimer=window.setTimeout(finishZoom,180)},{passive:false});
 function syncPhotoSelectionOnly(){document.querySelectorAll('.photo').forEach((e,i)=>e.setAttribute('aria-pressed',String(i===selected)))}
-canvas.addEventListener('dblclick',e=>{if(!ready)return;const p=coords(e),rects=C.frameBoxes(state);for(let i=rects.length-1;i>=0;i--)if(C.hit(rects[i],p)){selectPhoto(i);break}});
+canvas.addEventListener('dblclick',e=>{if(!ready)return;const p=coords(e);if(logoHit(p)){logoSelected=true;refresh();return}const rects=C.frameBoxes(state);for(let i=rects.length-1;i>=0;i--)if(C.hit(rects[i],p)){selectPhoto(i);break}});
 $('slant-toggle').onclick=()=>rememberAnd(()=>{state.slant=state.slant.x||state.slant.y?{x:0,y:0}:{x:.08,y:.06}});
 $('slant-reset').onclick=()=>rememberAnd(()=>{state.slant={x:0,y:0};state.cut={top:.5,bottom:.5,left:.5,right:.5};state.slots.forEach(s=>{delete s.frame;delete s.mask})});
 ['x','y'].forEach(axis=>{$('slant-'+axis).oninput=e=>{settleGesture();zoomBefore??=clone(state);state.slant[axis]=Number(e.target.value)/100;controls();draw()};$('slant-'+axis).onchange=finishZoom;$('slant-'+axis).onblur=finishZoom});
 canvas.addEventListener('pointerdown',e=>{if(!ready||gesture||e.button!==0||!state.slots.length)return;if(exchangeSource){const target=atPoint(coords(e));if(target>=0)completeExchange(target);return}finishZoom();const p=coords(e),scale=pageW/(canvas.getBoundingClientRect().width||540),handle=frameMode&&!e.shiftKey&&frameHandles().find(h=>Math.hypot(h.x-p.x,h.y-p.y)<10*scale);const ph=!frameMode&&!e.shiftKey&&photoHandles(box()).find(h=>Math.hypot(h.x-p.x,h.y-p.y)<10*scale),edge=!handle&&!ph&&!e.shiftKey?edgeAt(p,5*scale):-1;const i=handle||ph?selected:edge>=0?edge:atPoint(p);if(i<0){frameMode=true;frameTool='proportion';refresh();return}if(!handle){frameMode=edge>=0;frameTool='proportion'}selected=i;const b=C.frameBoxes(state)[i],slot=state.slots[i],g=C.geometry(images[slot.photo],b,slot);gesture={id:e.pointerId,index:i,action:handle?(frameTool==='slant'?'slant':'flex'):ph?'photo-scale':edge>=0?'frame-select':e.shiftKey?'swap':'crop',corner:handle?.corner,slantHandle:handle,start:p,b,slot:{x:slot.x,y:slot.y,zoom:slot.zoom},g,before:clone(state),moved:false};canvas.setPointerCapture(e.pointerId);window.clearTimeout(holdTimer);if(gesture.action==='crop'&&state.slots.length>1)holdTimer=window.setTimeout(()=>{if(!gesture||gesture.moved)return;gesture.action='swap';updateHint();canvas.style.cursor='grabbing';say('已抓起相片：拖去另一張交換，放開取消');draw()},450);refresh()});
 canvas.addEventListener('pointermove',e=>{if(!gesture||gesture.id!==e.pointerId)return;const p=coords(e),dx=p.x-gesture.start.x,dy=p.y-gesture.start.y;if(!gesture.moved&&Math.abs(dx)+Math.abs(dy)<2)return;gesture.moved=true;window.clearTimeout(holdTimer);
  const s0=state.slots[gesture.index];
- if(gesture.action==='slant'){const h=gesture.slantHandle;state.slant[h.axis]=C.clamp(gesture.before.slant[h.axis]+(h.axis==='x'?dx:dy)/h.factor,-.12,.12)}else if(gesture.action==='flex')state.customCells=C.resizeLayout(gesture.before,gesture.index,gesture.corner,p);
+ if(gesture.action==='logo-scale'){const b=gesture.logo,sign=gesture.sign,ratio=1+(sign.x*b.w*dx+sign.y*b.h*dy)/(b.w*b.w+b.h*b.h);B.update(state,brand=>{brand.size=C.clamp(b.w/pageW*ratio,.04,.5)})}else if(gesture.action==='logo-select')return;else if(gesture.action==='slant'){const h=gesture.slantHandle;state.slant[h.axis]=C.clamp(gesture.before.slant[h.axis]+(h.axis==='x'?dx:dy)/h.factor,-.12,.12)}else if(gesture.action==='flex')state.customCells=C.resizeLayout(gesture.before,gesture.index,gesture.corner,p);
  else if(gesture.action==='photo-scale'){const cx=gesture.b.x+gesture.b.w/2,cy=gesture.b.y+gesture.b.h/2,start=Math.hypot(gesture.start.x-cx,gesture.start.y-cy);s0.zoom=C.clamp(gesture.slot.zoom*Math.hypot(p.x-cx,p.y-cy)/Math.max(1,start),1,3)}else if(gesture.action==='frame-select')return;else if(gesture.action==='swap')dropTarget=atPoint(p);
  else{if(gesture.g.overflowX)s0.x=C.clamp(gesture.slot.x-dx/gesture.g.overflowX);if(gesture.g.overflowY)s0.y=C.clamp(gesture.slot.y-dy/gesture.g.overflowY)}
  refresh()});
 function finish(e,cancel=false){if(!gesture||gesture.id!==e.pointerId)return;window.clearTimeout(holdTimer);canvas.style.cursor='';const g=gesture,target=dropTarget;gesture=null;dropTarget=-1;if(cancel){state=g.before;refresh();return}if(g.action==='swap'){if(g.moved)swapPhotos(g.index,target);updateHint();draw();say(target>=0&&target!==g.index?'已交換相片；可復原':'已返回調構圖');return}if(g.moved&&changed(g.before))save(g.before);updateHint();draw()}
 canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',e=>finish(e,true));canvas.addEventListener('lostpointercapture',e=>finish(e,true));
-canvas.addEventListener('keydown',e=>{if(!state.slots.length)return;if(e.key==='Escape'){if(gesture){window.clearTimeout(holdTimer);canvas.style.cursor='';const g=gesture;gesture=null;dropTarget=-1;state=g.before;refresh()}return}if(frameMode||exchangeSource||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const d=e.shiftKey?.05:.01,dx=e.key==='ArrowLeft'?-d:e.key==='ArrowRight'?d:0,dy=e.key==='ArrowUp'?-d:e.key==='ArrowDown'?d:0;rememberAnd(()=>{const s=state.slots[selected];s.x=C.clamp(s.x-dx);s.y=C.clamp(s.y-dy)});});
+canvas.addEventListener('keydown',e=>{if(!state.slots.length)return;if(e.key==='Escape'){if(gesture){window.clearTimeout(holdTimer);canvas.style.cursor='';const g=gesture;gesture=null;dropTarget=-1;state=g.before;refresh()}return}if(logoSelected||frameMode||exchangeSource||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const d=e.shiftKey?.05:.01,dx=e.key==='ArrowLeft'?-d:e.key==='ArrowRight'?d:0,dy=e.key==='ArrowUp'?-d:e.key==='ArrowDown'?d:0;rememberAnd(()=>{const s=state.slots[selected];s.x=C.clamp(s.x-dx);s.y=C.clamp(s.y-dy)});});
 function renderLayouts(){const count=state.slots.length,key=count+':'+state.ratio;if(layoutCount===key)return;layoutCount=key;$('layouts').replaceChildren();if(!count){filterLayouts();return;}C.layoutsFor(count).forEach(l=>{const e=document.createElement('button'),svg=document.createElementNS('http://www.w3.org/2000/svg','svg'),label=document.createElement('span');e.className='layout';e.dataset.layout=l.id;svg.classList.add('layout-preview');const previewH=state.ratio==='4:5'?125:100;svg.setAttribute('viewBox','0 0 100 '+previewH);svg.style.aspectRatio='100 / '+previewH;svg.setAttribute('aria-hidden','true');e.dataset.category=layoutCategory(l);l.cells.forEach(([x,y,w,h],index)=>{const r=document.createElementNS('http://www.w3.org/2000/svg','rect');r.setAttribute('x',String(x*100+2));r.setAttribute('y',String(y*previewH+2));r.setAttribute('width',String(w*100-4));r.setAttribute('height',String(h*previewH-4));r.setAttribute('fill',['#9BBBE9','#D3E0F1','#426BA6','#B4CBE8'][index%4]);svg.append(r)});if(l.id==='cut-grid'){const pts=[[[0,0],[.42,0],[.5,.5],[0,.42]],[[.42,0],[1,0],[1,.58],[.5,.5]],[[0,.42],[.5,.5],[.58,1],[0,1]],[[.5,.5],[1,.58],[1,1],[.58,1]]];svg.replaceChildren();pts.forEach((points,i)=>{const shape=document.createElementNS('http://www.w3.org/2000/svg','polygon');shape.setAttribute('points',points.map(([x,y])=>[x*100,y*previewH].join(',')).join(' '));shape.setAttribute('fill',['#9BBBE9','#D3E0F1','#426BA6','#B4CBE8'][i]);shape.setAttribute('stroke','white');shape.setAttribute('stroke-width','3');svg.append(shape)})}label.textContent=l.name;e.append(svg,label);e.onclick=()=>rememberAnd(()=>{delete state.customCells;state.layout=l.id;state.slots.forEach(s=>{delete s.frame;delete s.mask});state.slant=l.id==='cut-grid'?{x:.08,y:.06}:{x:0,y:0};state.cut={top:.5,bottom:.5,left:.5,right:.5}});$('layouts').append(e)});filterLayouts()}
 function layoutCategory(l){if(l.id==='cut-grid')return'slant';if(l.cells.length>1&&(l.cells.every(c=>c[2]===1)||l.cells.every(c=>c[3]===1)))return'strips';const areas=l.cells.map(c=>c[2]*c[3]);if(Math.max(...areas)-Math.min(...areas)<.001)return'balanced';return Math.max(...areas)>2*Math.min(...areas)?'hero':'mixed'}
 function filterLayouts(){const nodes=[...document.querySelectorAll('.layout')],filter=$('layout-filter').value;nodes.forEach(n=>n.hidden=filter!=='all'&&n.dataset.category!==filter);const visible=nodes.filter(n=>!n.hidden).length;$('layout-count').textContent=state.slots.length?(visible?state.slots.length+' 張相片 / '+visible+' 款排版':'呢個分類暫時冇適合排版，請揀其他分類'):'加入相片後顯示適用排版'}
