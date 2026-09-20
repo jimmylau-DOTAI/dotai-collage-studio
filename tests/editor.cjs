@@ -29,6 +29,6 @@ const images=Array.from({length:6},(_,i)=>{const c=createCanvas(1200,900),x=c.ge
 const canvas=createCanvas(1080,1080);C.draw(canvas.getContext('2d'),images,state);
 const top=[...canvas.getContext('2d').getImageData(1,1,1,1).data];
 assert.deepEqual(top.slice(0,3),[255,255,255],'Top logo band reaches exported artwork');
-const photo=[...canvas.getContext('2d').getImageData(540,brand.band.h+20,1,1).data];
+const photo=[...canvas.getContext('2d').getImageData(300,brand.band.h+150,1,1).data];
 assert.notDeepEqual(photo.slice(0,3),[255,255,255],'Photos start below the band');
 console.log('PASS: local square and wordmark logo geometry, top band, frame remap, and exported brand pixels.');

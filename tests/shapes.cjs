@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict');
 require('../src/collage-core.js');const C=globalThis.CollageCore;
 const s=C.defaults();
-assert.equal(s.bg,'#0B63F6');assert.equal(s.brand.placement,'none');assert.equal(s.brand.square,null);assert.equal(s.brand.wordmark,null);
+assert.equal(s.bg,'#FFFFFF');assert.equal(s.brand.placement,'none');assert.equal(s.brand.square,null);assert.equal(s.brand.wordmark,null);
 s.slots[0].mask=C.presetMask('triangle');
 let b=C.frameBoxes(s)[0];
 assert(!C.hit(b,{x:b.x+2,y:b.y+2}));

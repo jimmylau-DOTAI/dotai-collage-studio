@@ -9,12 +9,13 @@ const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole:vc,beforeParse
   for(const key of ['width','height']){const d=Object.getOwnPropertyDescriptor(window.HTMLCanvasElement.prototype,key);Object.defineProperty(window.HTMLCanvasElement.prototype,key,{...d,set(v){d.set.call(this,v);if(surfaces.has(this))surfaces.get(this)[key]=v;}});}
   window.HTMLCanvasElement.prototype.setPointerCapture=function(){};
   window.HTMLCanvasElement.prototype.toBlob=function(done,type,quality){surfaces.get(this).encode('jpeg',Math.round(quality*100)).then(bytes=>done({bytes,type,size:bytes.length}));};
+  window.HTMLCanvasElement.prototype.toDataURL=function(){return 'data:image/jpeg;base64,AA==';};
   window.HTMLCanvasElement.prototype.getContext=function(){if(!surfaces.has(this))surfaces.set(this,createCanvas(this.width,this.height));return surfaces.get(this).getContext('2d');};
   window.URL.createObjectURL=blob=>{downloads.push(blob);return'blob:test';};window.URL.revokeObjectURL=()=>{};window.HTMLAnchorElement.prototype.click=function(){};
 }});
 (async()=>{const {document}=dom.window,el=id=>document.getElementById(id);
   await new Promise(resolve=>{const until=Date.now()+25000;const poll=()=>!el('export-top').disabled||errors.length||Date.now()>until?resolve():setTimeout(poll,20);poll();});
-  assert.equal(errors.length,0);assert.equal(el('export-top').disabled,false);assert.equal(document.querySelectorAll('.layout').length,29);assert.equal(document.querySelectorAll('.photo').length,4);
+  assert.equal(errors.length,0);assert.equal(el('export-top').disabled,false);assert.equal(document.querySelectorAll('.layout').length,29);assert.equal(document.querySelectorAll('.photo').length,4);assert.equal(el('bg-color').value,'#ffffff');
   assert.deepEqual([...el('ratio').options].map(x=>x.value),['1:1','4:5']);assert.equal(el('edit-mode'),null);assert.equal(document.querySelector('[data-layout="grid"]').textContent,'經典四格');
   assert.equal(document.querySelectorAll('.layout-preview').length,29);assert.equal(document.querySelectorAll('.photo img').length,4);assert(el('bg-color'));
   document.querySelector('[data-color="#00345C"]').click();assert.equal(el('undo').disabled,false);

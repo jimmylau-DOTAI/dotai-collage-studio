@@ -130,7 +130,7 @@
     ctx.restore(); return rects;
   }
   function defaults() {
-    return { layout:'grid', ratio:'1:1',cut:{top:.5,bottom:.5,left:.5,right:.5},margin:18, gap:12, radius:0, bg:'#0B63F6', brand:{placement:'none',square:null,wordmark:null,squareSize:.12,wordmarkSize:.24,padding:24}, slots:[
+    return { layout:'grid', ratio:'1:1',cut:{top:.5,bottom:.5,left:.5,right:.5},margin:18, gap:12, radius:0, bg:'#FFFFFF', brand:{placement:'none',square:null,wordmark:null,squareSize:.12,wordmarkSize:.24,padding:24}, slots:[
       {photo:0,x:.52,y:.53,zoom:1}, {photo:1,x:.63,y:.52,zoom:1},
       {photo:2,x:.52,y:.5,zoom:1}, {photo:3,x:.72,y:.56,zoom:1}
     ] };

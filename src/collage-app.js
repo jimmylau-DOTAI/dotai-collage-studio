@@ -6,6 +6,7 @@ const canvas=$('canvas'),ctx=canvas.getContext('2d'),overlay=$('edit-overlay'),o
 const photos=JSON.parse($('photo-data').textContent),images=[],history=[],future=[];
 let state=C.defaults(),selected=0,ready=false,gesture=null,downloadUrl=null,zoomBefore=null;
 let pageW=1080,pageH=1080;
+const savedColorKey='dotai-collage-saved-colors-v1';
 function say(s,bad=false){$('status').textContent=s;$('status').classList.toggle('error',bad)}
 function save(before){if(before){history.push(before);if(history.length>60)history.shift();future.length=0}$('undo').disabled=!history.length;$('redo').disabled=!future.length}
 function area(){return B.measure({w:pageW,h:pageH},state.brand).photoArea}
@@ -31,7 +32,8 @@ function controls(){
  [['square','logo-square-preview'],['wordmark','logo-wordmark-preview']].forEach(([kind,id])=>{const preview=$(id),asset=state.brand[kind];preview.hidden=!asset;if(asset)preview.src=asset.src});
  save();
 }
-function thumbs(){const out=$('photos');out.replaceChildren();state.slots.forEach((s,i)=>{const e=document.createElement('button'),image=document.createElement('img'),label=document.createElement('span');e.className='photo';e.setAttribute('aria-pressed',String(i===selected));image.src=photos[s.photo]?.src||'';image.alt='相片 '+(i+1)+' 預覽';label.textContent='相片 '+(i+1);e.append(image,label);e.onclick=()=>{selected=i;controls();draw()};out.append(e)})}
+function thumbnail(image){const c=document.createElement('canvas'),x=c.getContext('2d'),side=96;c.width=side;c.height=side;const scale=Math.max(side/image.width,side/image.height),w=image.width*scale,h=image.height*scale;x.drawImage(image,(side-w)/2,(side-h)/2,w,h);return c.toDataURL('image/jpeg',.85)}
+function thumbs(){const out=$('photos');out.replaceChildren();state.slots.forEach((s,i)=>{const e=document.createElement('button'),image=document.createElement('img'),label=document.createElement('span');e.className='photo';e.setAttribute('aria-pressed',String(i===selected));image.src=thumbnail(images[s.photo]);image.alt='相片 '+(i+1)+' 預覽';label.textContent='相片 '+(i+1);e.append(image,label);e.onclick=()=>{selected=i;controls();draw()};out.append(e)})}
 function refresh(){controls();thumbs();draw()}
 function rememberAnd(fn){const before=clone(state);fn();refresh();save(before)}
 function coords(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*pageW/r.width,y:(e.clientY-r.top)*pageH/r.height}}
@@ -47,11 +49,16 @@ function finish(e,cancel=false){if(!gesture||gesture.id!==e.pointerId)return;con
 canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',e=>finish(e,true));canvas.addEventListener('lostpointercapture',e=>finish(e,true));
 canvas.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const d=e.shiftKey?.05:.01,dx=e.key==='ArrowLeft'?-d:e.key==='ArrowRight'?d:0,dy=e.key==='ArrowUp'?-d:e.key==='ArrowDown'?d:0;rememberAnd(()=>{const s=state.slots[selected];s.x=C.clamp(s.x-dx);s.y=C.clamp(s.y-dy)});});
 C.layouts.forEach(l=>{const e=document.createElement('button'),svg=document.createElementNS('http://www.w3.org/2000/svg','svg'),label=document.createElement('span');e.className='layout';e.dataset.layout=l.id;svg.classList.add('layout-preview');svg.setAttribute('viewBox','0 0 100 100');svg.setAttribute('aria-hidden','true');l.cells.forEach(([x,y,w,h])=>{const r=document.createElementNS('http://www.w3.org/2000/svg','rect');r.setAttribute('x',String(x*100+3));r.setAttribute('y',String(y*100+3));r.setAttribute('width',String(w*100-6));r.setAttribute('height',String(h*100-6));svg.append(r)});label.textContent=l.name;e.append(svg,label);e.onclick=()=>rememberAnd(()=>{state.layout=l.id;state.slots.forEach(s=>delete s.frame)});$('layouts').append(e)});
-[['#0B63F6','IG 藍'],['#FFFFFF','純白'],['#F5F8FF','淺藍'],['#00345C','深海藍']].forEach(([color,name])=>{const e=document.createElement('button');e.className='swatch';e.dataset.color=color;e.style.setProperty('--swatch',color);e.textContent=name;e.onclick=()=>rememberAnd(()=>state.bg=color);$('swatches').append(e)});
+function addSwatch(out,color,name){const e=document.createElement('button');e.className='swatch';e.dataset.color=color;e.style.setProperty('--swatch',color);e.textContent=name;e.onclick=()=>rememberAnd(()=>state.bg=color);out.append(e)}
+function savedColors(){try{return JSON.parse(localStorage.getItem(savedColorKey)||'[]').filter(x=>/^#[0-9A-F]{6}$/i.test(x.color)&&typeof x.name==='string')}catch{return[]}}
+function renderSavedColors(){const out=$('saved-colors');out.replaceChildren();savedColors().forEach(({color,name})=>addSwatch(out,color,name))}
+[['#0B63F6','IG 藍'],['#FFFFFF','純白'],['#F5F8FF','淺藍'],['#00345C','深海藍']].forEach(([color,name])=>addSwatch($('swatches'),color,name));renderSavedColors();
 $('bg-color').onchange=e=>rememberAnd(()=>state.bg=e.target.value.toUpperCase());
+$('save-color').onclick=()=>{const name=window.prompt('為呢隻底色命名','自訂色');if(!name?.trim())return;const colors=savedColors().filter(x=>x.name!==name.trim());colors.unshift({name:name.trim().slice(0,20),color:state.bg});try{localStorage.setItem(savedColorKey,JSON.stringify(colors.slice(0,8)));renderSavedColors();say('已儲存底色：'+name.trim())}catch{say('未能儲存底色',true)}};
 [['margin','margin'],['gap','gap']].forEach(([id,k])=>$(id).onchange=e=>rememberAnd(()=>state[k]=Number(e.target.value)));
 $('ratio').onchange=e=>{if(!['1:1','4:5'].includes(e.target.value))return;rememberAnd(()=>{const old=C.size(state),oldA=B.measure(old,state.brand).photoArea;state.ratio=e.target.value;const next=C.size(state),newA=B.measure(next,state.brand).photoArea;B.remapFrames(state,oldA,newA)})};
 $('zoom').onfocus=()=>{zoomBefore??=clone(state)};$('zoom').onpointerdown=()=>{zoomBefore=clone(state)};$('zoom').oninput=e=>{state.slots[selected].zoom=Number(e.target.value)/100;controls();draw()};$('zoom').onchange=()=>{save(zoomBefore||clone(state));zoomBefore=null};
+$('zoom-out').onclick=()=>rememberAnd(()=>state.slots[selected].zoom=C.clamp(state.slots[selected].zoom-.1,1,3));$('zoom-in').onclick=()=>rememberAnd(()=>state.slots[selected].zoom=C.clamp(state.slots[selected].zoom+.1,1,3));
 $('center').onclick=()=>rememberAnd(()=>Object.assign(state.slots[selected],{x:.5,y:.5,zoom:1}));
 $('undo').onclick=()=>{if(!history.length)return;future.push(clone(state));state=history.pop();refresh();say('已復原')};$('redo').onclick=()=>{if(!future.length)return;history.push(clone(state));state=future.pop();refresh();say('已重做')};$('reset').onclick=()=>rememberAnd(()=>{state=C.defaults();selected=0});
 async function readFile(file,limit,maxDimension=Infinity){if(!/^image\/(jpeg|png|webp)$/.test(file.type))throw Error('請使用 PNG、JPG 或 WebP');if(file.size>limit)throw Error('圖片檔案太大');const src=await new Promise((yes,no)=>{const r=new FileReader();r.onload=()=>yes(r.result);r.onerror=()=>no(Error('檔案讀取失敗'));r.readAsDataURL(file)});const image=await load(src);if(image.width>maxDimension||image.height>maxDimension)throw Error('標誌尺寸不可超過 4096px');return{src,image,name:file.name,width:image.width,height:image.height}}
