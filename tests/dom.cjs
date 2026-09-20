@@ -14,7 +14,8 @@ const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole:vc,beforeParse
   window.URL.createObjectURL=blob=>{downloads.push(blob);return'blob:test';};window.URL.revokeObjectURL=()=>{};window.HTMLAnchorElement.prototype.click=function(){};
 }});
 (async()=>{const {document}=dom.window,el=id=>document.getElementById(id);
-  await new Promise(resolve=>{const until=Date.now()+25000;const poll=()=>!el('export-top').disabled||errors.length||Date.now()>until?resolve():setTimeout(poll,20);poll();});
+  await new Promise(resolve=>{const until=Date.now()+25000;const poll=()=>document.body.dataset.ready==='true'||errors.length||Date.now()>until?resolve():setTimeout(poll,20);poll();});
+  assert.equal(document.querySelectorAll('.photo').length,0);el('show-demo').click();
   assert.equal(errors.length,0);assert.equal(el('export-top').disabled,false);assert.equal(document.querySelectorAll('.layout').length,26);assert.equal(document.querySelectorAll('.photo').length,4);assert.equal(el('bg-color').value,'#ffffff');
   assert.deepEqual([...el('ratio').options].map(x=>x.value),['1:1','4:5']);assert.equal(el('edit-mode'),null);assert.equal(document.querySelector('[data-layout="grid"]').textContent,'經典四格');
   assert.equal(document.querySelectorAll('.layout-preview').length,26);assert.equal(document.querySelectorAll('.photo img').length,4);assert(el('bg-color'));

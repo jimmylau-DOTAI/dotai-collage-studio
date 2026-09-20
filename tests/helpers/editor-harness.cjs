@@ -13,7 +13,7 @@ async function waitFor(predicate,label='editor update',timeout=5000){
   }
 }
 
-async function openEditor(){
+async function openEditor({empty=false}={}){
   const surfaces=new WeakMap(),downloads=[],errors=[],prompts=[];
   const virtualConsole=new VirtualConsole();
   virtualConsole.on('jsdomError',error=>errors.push(error.message));
@@ -37,7 +37,7 @@ async function openEditor(){
     window.HTMLAnchorElement.prototype.click=function(){};
   }});
   const {window}=dom,el=id=>window.document.getElementById(id);
-  try{await waitFor(()=>errors.length||!el('export-top').disabled,'initialization',25000);if(errors.length)throw Error(errors.join('\n'));}
+  try{await waitFor(()=>errors.length||window.document.body.dataset.ready==='true','initialization',25000);if(errors.length)throw Error(errors.join('\n'));if(!empty)el('show-demo').click();}
   catch(error){window.close();throw error;}
   function change(id,value){el(id).value=value;el(id).dispatchEvent(new window.Event('change',{bubbles:true}));}
   function file(name,color,width=320,height=180){

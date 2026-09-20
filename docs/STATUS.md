@@ -1,8 +1,19 @@
 # Current local handoff — 2026-09-20
 
-Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/constrained-frames-slant`.
+Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/direct-photo-flex-layout`.
 
-## Current: constrained frames, photo controls, universal slant
+## Current: direct photo tools and flexible shared dividers
+
+- Empty start with explicit optional demo. First real import replaces all demo slots, including via single-file replacement. Reset returns to empty; image-dependent controls/exports are disabled until photos exist.
+- Contextual canvas toolbar exposes zoom, centre, draggable swap grip and make-hero. Wheel zoom selects the photo under the pointer and groups a burst into one undo. Panning stays separate from resizing and works through slanted clips (verified with real stripe pixels).
+- Thumbnails can be dragged to another thumbnail or canvas frame. Swap grip and Shift-pointer drag allow canvas-target swapping. Photo crop/zoom travels with the photo; layout proportions stay put.
+- Shared white corner controls resize connected frame boundaries. A normalized custom-cell layout preserves neighbours instead of overlapping them; the selected third photo can become the largest. Make-hero is a one-step 65% main-photo layout with the remaining photos stacked beside it. Re-selecting a layout clears custom proportions.
+- Slant, logo band, ratios and undo operate on custom cells. A minimum normalized frame span protects against collapse when maximum gutters/margins and a logo are added later.
+- Tests include actual empty-start/import behaviour, canvas zoom, slanted crop pixels, swap routing, largest-third resizing, redo, JPEG output and 2,560 flexible-corner combinations. Native Canvas/jsdom checks are not real-browser gesture acceptance; live drag/drop and touch remain PENDING.
+- Verification: `npm run check` passed all 16 suites and privacy checks; `git diff --check` passed. The focused direct-flex suite also passed after adding an explicit Shift-pointer swap and undo assertion.
+- Local-only changes; no push, PR or deployment. Refreshing loses unsaved photos/edits: export current artwork first.
+
+## Previous: constrained frames, photo controls, universal slant
 
 - Removed the confusing advanced free-frame handles, not merely hidden them. Every canvas drag crops inside the chosen frame; photo zoom cannot resize frames. Intentional picture-in-picture layouts are excluded from the visible catalogue.
 - Added append picker and an independently labelled remove button per thumbnail (minimum one, maximum nine). Remaining photos retain IDs, crop offsets and zoom; add/remove are undoable and reflow the layout. Whole-set replacement is a separate expandable action.

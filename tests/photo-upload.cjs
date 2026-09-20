@@ -29,7 +29,8 @@ function choose(input,file){Object.defineProperty(input,'files',{configurable:tr
 function photo(i){return dom.window.document.querySelectorAll('.photo')[i]}
 (async()=>{
   const {document}=dom.window;const until=Date.now()+25000;
-  while(document.getElementById('export-top').disabled&&Date.now()<until)await sleep(10);
+  while(document.body.dataset.ready!=='true'&&Date.now()<until)await sleep(10);
+  const initialInput=document.getElementById('add-files');Object.defineProperty(initialInput,'files',{configurable:true,value:['#884422','#228844','#442288','#888844'].map((color,i)=>imageFile('initial-'+i+'.png',color))});await initialInput.onchange({target:initialInput});
   assert.equal(errors.length,0);assert.equal(document.querySelectorAll('.photo').length,4);
   const before=photo(0).querySelector('img').src;assert(before.startsWith('data:image/jpeg;base64,'));
   const beforeBytes=Buffer.from(before.split(',')[1],'base64');assert.equal((await sharp(beforeBytes).metadata()).format,'jpeg');

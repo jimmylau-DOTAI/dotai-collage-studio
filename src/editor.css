@@ -93,6 +93,12 @@ canvas.dragging { cursor: grabbing; }
 .photo.over { outline: 2px dashed var(--brand-navy); }
 .upload-photo { margin-top: 10px; }
 .batch-upload { margin-bottom: 14px; }
+.empty-state { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:12px; padding:24px; text-align:center; background:#fff; }
+.empty-state p { margin:0; color:var(--muted); }
+.canvas-tools { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px; margin-top:14px; }
+.canvas-tools button { font-size:12px; }
+#swap-grip, .photo[draggable=true] { cursor:grab; }
+.photo.drop-target { outline:3px solid var(--brand-accent); }
 .photo-card { min-width:0; display:flex; flex-direction:column; gap:4px; }
 .photo-card .photo { flex:1; }
 .photo-remove { border:0; background:transparent; font-size:11px; min-height:32px; text-decoration:underline; color:var(--muted); }
