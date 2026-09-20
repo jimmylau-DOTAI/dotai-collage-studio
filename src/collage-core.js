@@ -206,8 +206,9 @@
       ctx.restore();
     }
     const brand=root.CollageBrand&&root.CollageBrand.measure({w:W,h:H},state.brand);
-    if(brand?.band){ctx.fillStyle='#FFFFFF';ctx.fillRect(brand.band.x,brand.band.y,brand.band.w,brand.band.h);}
-    if(brand?.logo){const logo=images[brand.logo.assetId];if(!logo)throw new Error('已選標誌未能讀取');ctx.drawImage(logo,brand.logo.x,brand.logo.y,brand.logo.w,brand.logo.h);}
+    const backing=brand?.band||brand?.badge;
+    if(backing){ctx.fillStyle=state.brand.backdropMode==='custom'&&/^#[0-9a-f]{6}$/i.test(state.brand.backdropColor)?state.brand.backdropColor:state.bg;ctx.fillRect(backing.x,backing.y,backing.w,backing.h);}
+    if(brand?.logo){const b=brand.logo,logo=images[b.assetId];if(!logo)throw new Error('已選標誌未能讀取');if(b.source){const s=b.source;ctx.drawImage(logo,s.x,s.y,s.w,s.h,b.x,b.y,b.w,b.h)}else ctx.drawImage(logo,b.x,b.y,b.w,b.h);}
     ctx.restore(); return rects;
   }
   function defaults() {

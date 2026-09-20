@@ -4,7 +4,7 @@
 const C=CollageCore,B=CollageBrand,$=id=>document.getElementById(id),clone=v=>JSON.parse(JSON.stringify(v));
 const canvas=$('canvas'),ctx=canvas.getContext('2d'),overlay=$('edit-overlay'),ox=overlay.getContext('2d');
 const photos=JSON.parse($('photo-data').textContent),images=[],history=[],future=[],thumbnailCache=new WeakMap(),uploadTokens=[];
-let state=C.defaults(),selected=0,ready=false,gesture=null,downloadUrl=null,zoomBefore=null,palette=null;
+let state=C.defaults(),selected=0,ready=false,gesture=null,downloadUrl=null,zoomBefore=null,palette=null,brandStudio=null;
 state.slots=[];state.demo=false;
 let pageW=1080,pageH=1080,holdTimer=null,frameMode=false,frameTool='proportion';
 let layoutCount=0,batchToken=0,wheelTimer=null,dragSource=null,dropTarget=-1,exchangeSource=null;
@@ -62,7 +62,7 @@ function controls(){
  $('bg-color').value=state.bg;$('brand-placement').value=state.brand.placement;const range=B.sizeRange(state.brand.placement);$('brand-size').min=range.min;$('brand-size').max=range.max;$('brand-size').value=Math.round((state.brand.placement==='corner'?state.brand.squareSize:state.brand.wordmarkSize)*100);$('brand-padding').value=state.brand.padding;
  $('brand-size').disabled=state.brand.placement==='none';$('brand-padding').disabled=state.brand.placement==='none';
  document.querySelectorAll('.layout').forEach(e=>e.setAttribute('aria-pressed',String(!state.customCells&&e.dataset.layout===state.layout)));
- if(palette)palette.sync();
+ if(palette)palette.sync();if(brandStudio)brandStudio.sync();
  $('logo-square-remove').disabled=!state.brand.square;$('logo-wordmark-remove').disabled=!state.brand.wordmark;
  [['square','logo-square-preview'],['wordmark','logo-wordmark-preview']].forEach(([kind,id])=>{const preview=$(id),asset=state.brand[kind];preview.hidden=!asset;if(asset)preview.src=asset.src});
  save();
@@ -95,7 +95,7 @@ $('help-toggle').onclick=()=>showHelp($('editor-help').hidden);$('help-close').o
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(gesture){finish({pointerId:gesture.id},true);e.preventDefault()}if(exchangeSource){exchangeSource=null;refresh();e.preventDefault()}if(!$('editor-help').hidden){showHelp(false);e.preventDefault()}return}if(e.key==='?'&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&!e.target.closest?.('input,textarea,select,[contenteditable]')){e.preventDefault();showHelp($('editor-help').hidden)}});
  $('slant-straight').onclick=()=>$('slant-reset').click();
 $('empty-add').onclick=()=>$('add-files').click();
-$('show-demo').onclick=()=>rememberAnd(()=>{state=C.defaults();state.demo=true;selected=0});
+$('show-demo').onclick=()=>rememberAnd(()=>{const {brand,bg}=state;state=C.defaults();state.brand=brand;state.bg=bg;state.demo=true;selected=0});
 $('make-hero').onclick=()=>{if(state.slots.length<2)return;rememberAnd(()=>{let k=0;const n=state.slots.length-1;state.customCells=state.slots.map((_,i)=>i===selected?[0,0,.65,1]:[.65,k++/n,.35,1/n])});say('已將相片 '+(selected+1)+' 設為最大主相；白色圓點可再調比例')};
 canvas.addEventListener('wheel',e=>{if(!ready||gesture)return;const i=atPoint(coords(e));if(i<0)return;e.preventDefault();if(i!==selected){finishZoom();selected=i}zoomBefore??=clone(state);const delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?300:1);state.slots[i].zoom=C.clamp(state.slots[i].zoom*Math.exp(-C.clamp(delta,-200,200)*.002),1,3);controls();draw();syncPhotoSelectionOnly();window.clearTimeout(wheelTimer);wheelTimer=window.setTimeout(finishZoom,180)},{passive:false});
 function syncPhotoSelectionOnly(){document.querySelectorAll('.photo').forEach((e,i)=>e.setAttribute('aria-pressed',String(i===selected)))}
@@ -159,5 +159,10 @@ async function exportJpg(){if(!ready)return;try{const out=document.createElement
 $('export-top').onclick=exportJpg;$('export-bottom').onclick=exportJpg;
 const icons=JSON.parse($('icon-data').textContent);for(const [id,name,label] of [['photo-mode','photo','相片'],['frame-mode','frame','相框'],['slant-mode','brand-sketch','斜切'],['help-toggle','help',''],['swap-select','arrows-exchange','交換'],['canvas-zoom-out','minus',''],['canvas-zoom-in','plus',''],['canvas-center','focus-centered',''],['frame-reset','rotate-2',''],['make-hero','layout-dashboard',''],['slant-straight','frame','還原直線'],['undo','arrow-back-up','復原'],['redo','arrow-forward-up','重做'],['export-top','download','下載 JPG'],['export-bottom','download','下載 JPG'],['mobile-canvas','frame','畫布'],['mobile-layout','layout-grid','排版'],['mobile-photo','photo','相片'],['mobile-brand','brand-sketch','品牌']]){const holder=document.createElement('template');holder.innerHTML=icons[name];const svg=holder.content.firstElementChild;svg.classList.add('ui-icon');svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');$(id).replaceChildren(svg,document.createTextNode(label))}
 $('undo').title='復原（⌘Z / Ctrl Z）';$('redo').title='重做（⇧⌘Z / Ctrl Shift Z）';
-try{images.push(...await Promise.all(photos.map(p=>load(p.src))));ready=true;fileInputs.forEach(input=>input.disabled=false);$('empty-add').disabled=false;$('show-demo').disabled=false;refresh();$('initial-preview').hidden=true;document.body.dataset.ready='true';say('加入你嘅相片開始；示範圖不會自動加入作品') }catch(err){say(err.message,true)}
+try{
+ images.push(...await Promise.all(photos.map(p=>load(p.src))));ready=true;
+ brandStudio=CollageBrandStudio.mount({document,images,getState:()=>state,readFile,load,storage:colorStorage,notify:say,change:(fn,bg,initial=false)=>{const apply=()=>{B.update(state,fn);if(bg)state.bg=bg};if(initial){apply();refresh()}else rememberAnd(apply)}});
+ await brandStudio.restore(true);
+ fileInputs.forEach(input=>input.disabled=false);$('empty-add').disabled=false;$('show-demo').disabled=false;refresh();$('initial-preview').hidden=true;document.body.dataset.ready='true';say('加入你嘅相片開始；示範圖不會自動加入作品');
+}catch(err){say(err.message,true)}
 })();

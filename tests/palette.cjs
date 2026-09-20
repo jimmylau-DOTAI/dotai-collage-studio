@@ -13,9 +13,8 @@ function click(el) { el.dispatchEvent(new el.ownerDocument.defaultView.Event('cl
 
 {
   const x = setup();
-  assert.equal(x.dom.window.document.querySelectorAll('#swatches .swatch').length, 4);
-  assert.equal(x.dom.window.document.querySelector('#swatches .swatch:nth-child(2)').textContent, '亮藍');
-  click(x.dom.window.document.querySelector('#swatches .swatch:nth-child(2)'));
+  assert(x.dom.window.document.querySelectorAll('#swatches .swatch').length >= 12, 'General palette includes neutral, warm and cool choices');
+  click(x.dom.window.document.querySelector('#swatches [data-color="#0B63F6"]'));
   assert.equal(x.color, '#0B63F6'); assert.equal(x.dom.window.document.querySelector('#bg-color').value, '#0b63f6');
 }
 {
@@ -59,8 +58,8 @@ function click(el) { el.dispatchEvent(new el.ownerDocument.defaultView.Event('cl
   assert.ok(deniedRead.messages.some(m => m[1]));
 }
 {
-  const x = setup(); x.color = '#00345C'; x.mounted.sync();
-  assert.equal(x.dom.window.document.getElementById('bg-color').value, '#00345c');
+  const x = setup(); x.color = '#5F4B78'; x.mounted.sync();
+  assert.equal(x.dom.window.document.getElementById('bg-color').value, '#5f4b78');
   assert.equal(x.dom.window.document.querySelector('#swatches .swatch:last-child').getAttribute('aria-pressed'), 'true');
 }
 console.log('PASS: palette');

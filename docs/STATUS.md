@@ -1,8 +1,17 @@
 # Current local handoff — 2026-09-20
 
-Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/light-editor-redesign`.
+Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/universal-brand-tools`.
 
-## Current: three editing modes and discoverable actions
+## Current: universal colors and local logo library
+
+- Replaced the four brand-specific artwork swatches with twelve general neutral/warm/cool choices; white remains the default. Saved colors now occupy a full row, with rename/remove under a disclosure rather than squeezed beside the color.
+- Visible brand controls use one multi-file logo library (up to eight), with original aspect ratios/colors, user-defined light/dark-background labels and one active logo. Old square/wordmark controls remain hidden for compatibility; new assets are not preseeded with DotAI marks.
+- All four corners allow zero edge padding. Compact badges, direct overlay and top/bottom full-width bands are available. Backing matches the artwork background by default, or uses its own chosen color. Optional transparent-bounds trimming does not alter the source file or remove opaque white backgrounds.
+- Explicit Save My Brand stores logos, background and placement settings in this browser; saved color cards persist separately. Startup/explicit load restores the kit but never activity photos. Forgetting the saved kit preserves current artwork and color cards. Files are normalized to PNG with a maximum 1024px long edge for local memory/storage; input is limited to 10 MB per logo and 40 MB per batch, and kit storage is bounded with non-destructive quota errors.
+- Verification: all 26 suites, privacy checks and `git diff --check` passed. Tests cover actual uploads, batch failure, bounds and backing pixels, JPEG color parity, undo, hide/show placement retention, transparent files, storage failure and a fresh-page reload. Desktop/mobile visual acceptance is still PENDING. No browser workaround, external upload, PR, push or deployment.
+- Specification and scope: `docs/UNIVERSAL-BRAND.md`. Download current artwork before refreshing: saved brands do not save editable photo projects.
+
+## Previous: three editing modes and discoverable actions
 
 - Photo, Frame and Slant are exclusive, labelled modes above the canvas. Switching modes preserves artwork; active gestures remain locked. Slant is explicit, not a nested frame toggle, with its own straighten action. Outside/edge clicks select Frame; photo interiors select Photo.
 - Explicit Exchange selects a second photo on the canvas or in the photo list; cancel/Escape leave the artwork unchanged. Original hold/Shift/thumbnail drag gestures remain available. Fewer than two photos disables exchange and slant with a visible explanation.

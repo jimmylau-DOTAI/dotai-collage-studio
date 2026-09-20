@@ -9,15 +9,36 @@
   function sizeRange(placement){
     return placement==='corner'?{min:6,max:24}:{min:12,max:40};
   }
+  function libraryMeasure(size,brand,asset){
+    if(!validAsset(asset))throw new Error('請先選取有效標誌');
+    const raw=asset.bounds;
+    const source=brand.trim&&raw&&[raw.x,raw.y,raw.w,raw.h].every(Number.isFinite)&&raw.x>=0&&raw.y>=0&&raw.w>0&&raw.h>0&&raw.x+raw.w<=asset.width&&raw.y+raw.h<=asset.height?raw:{x:0,y:0,w:asset.width,h:asset.height};
+    const bandMode=brand.placement==='top'||brand.placement==='bottom';
+    const badge=!bandMode&&brand.surface==='badge',inset=badge?12:0;
+    const padding=clamp(Number.isFinite(Number(brand.padding))?Number(brand.padding):24,0,64);
+    const share=clamp(Number(brand.size)||.16,.04,.5);
+    const maxH=bandMode?size.h*.2-padding*2:size.h*.35-padding*2-inset*2;
+    const scale=Math.max(0,Math.min(size.w*share/source.w,(size.w-2*(padding+inset))/source.w,maxH/source.h));
+    const w=source.w*scale,h=source.h*scale;
+    const logo={w,h,source:{...source},assetId:asset.id};
+    if(bandMode){
+      const bh=h+2*padding,top=brand.placement==='top',y=top?0:size.h-bh;
+      return {photoArea:{x:0,y:top?bh:0,w:size.w,h:size.h-bh},band:{x:0,y,w:size.w,h:bh},logo:{...logo,x:(size.w-w)/2,y:y+padding}};
+    }
+    const right=['tr','br'].includes(brand.anchor),bottom=['bl','br'].includes(brand.anchor);
+    const bw=w+2*inset,bh=h+2*inset,x=right?size.w-padding-bw:padding,y=bottom?size.h-padding-bh:padding;
+    return {photoArea:full(size),band:null,badge:badge?{x,y,w:bw,h:bh}:null,logo:{...logo,x:x+inset,y:y+inset}};
+  }
   function measure(size,brand){
     if(!size||!Number.isFinite(Number(size.w))||!Number.isFinite(Number(size.h))||Number(size.w)<=0||Number(size.h)<=0)throw new Error('畫布尺寸無效');
     const area=full(size);
     if(!brand||brand.placement==='none')return {photoArea:area,band:null,logo:null};
     if(!placements.has(brand.placement))throw new Error('標誌位置無效');
+    if(Array.isArray(brand.library)&&brand.activeId!=null)return libraryMeasure(size,brand,brand.library.find(a=>a.id===brand.activeId));
     const corner=brand.placement==='corner';
     const asset=corner?brand.square:brand.wordmark;
     if(!validAsset(asset))throw new Error('請先上載有效標誌');
-    const padding=clamp(Number(brand.padding)||24,12,64);
+    const padding=clamp(Number.isFinite(Number(brand.padding))?Number(brand.padding):24,0,64);
     const share=corner?clamp(Number(brand.squareSize)||.12,.06,.24):clamp(Number(brand.wordmarkSize)||.24,.12,.4);
     const maxHeight=corner?size.h-padding*2:size.h*.2-padding*2;
     const scale=Math.max(0,Math.min(size.w*share/asset.width,(size.w-padding*2)/asset.width,maxHeight/asset.height));

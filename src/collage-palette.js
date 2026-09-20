@@ -7,9 +7,17 @@
   const HEX = /^#[0-9a-f]{6}$/i;
   const BUILT_INS = [
     { color: '#FFFFFF', name: '純白' },
+    { color: '#F1F5F9', name: '霧灰' },
+    { color: '#232831', name: '炭黑' },
+    { color: '#F5EEDF', name: '米白' },
+    { color: '#E9D5B5', name: '沙色' },
+    { color: '#F2D4D7', name: '淡粉' },
+    { color: '#CFDFFC', name: '淺藍' },
     { color: '#0B63F6', name: '亮藍' },
-    { color: '#F5F8FF', name: '淺藍' },
-    { color: '#00345C', name: '深海藍' }
+    { color: '#D3E7DE', name: '薄荷' },
+    { color: '#466D5A', name: '森林' },
+    { color: '#E3DBEF', name: '淡紫' },
+    { color: '#5F4B78', name: '深紫' }
   ];
 
   function validColor(value) {
@@ -31,6 +39,7 @@
     const input = doc.getElementById('bg-color');
     const saveButton = doc.getElementById('save-color');
     const saved = doc.getElementById('saved-colors');
+    if(saved){const label=doc.createElement('p');label.className='small-note';label.textContent='我的色卡 · 只存本機';saved.before(label);}
     let records = [];
 
     function say(message, bad) {
@@ -133,7 +142,9 @@
             const next = records.filter(function (other) { return other !== item; });
             if (write(next)) { render(); say('已移除底色：' + item.name); }
           });
-          row.append(rename, remove); saved.appendChild(row);
+          const menu=doc.createElement('details'),summary=doc.createElement('summary'),actions=doc.createElement('div');
+          menu.className='color-menu';summary.textContent='⋯';summary.setAttribute('aria-label','管理底色：'+item.name);actions.className='color-menu-actions';actions.append(rename,remove);menu.append(summary,actions);
+          row.append(menu); saved.appendChild(row);
         });
       }
       sync();

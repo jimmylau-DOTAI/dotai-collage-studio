@@ -13,12 +13,13 @@ async function waitFor(predicate,label='editor update',timeout=5000){
   }
 }
 
-async function openEditor({empty=false}={}){
+async function openEditor({empty=false,stored={}}={}){
   const surfaces=new WeakMap(),downloads=[],errors=[],prompts=[];
   const virtualConsole=new VirtualConsole();
   virtualConsole.on('jsdomError',error=>errors.push(error.message));
   const html=fs.readFileSync(path.join(__dirname,'../../dist/index.html'),'utf8');
   const dom=new JSDOM(html,{url:'https://collage.test/',runScripts:'dangerously',virtualConsole,beforeParse(window){
+    for(const [key,value] of Object.entries(stored))window.localStorage.setItem(key,value);
     window.Image=Image;
     window.prompt=()=>prompts.shift()??null;
     const proto=window.HTMLCanvasElement.prototype;

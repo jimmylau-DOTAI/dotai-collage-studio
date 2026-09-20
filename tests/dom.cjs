@@ -23,7 +23,7 @@ const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole:vc,beforeParse
     const meta=await sharp(Buffer.from(image.src.split(',')[1],'base64')).metadata();
     assert.deepEqual([meta.width,meta.height,meta.format],[96,96,'jpeg'],'Thumbnail must contain a real decodable JPEG');
   }
-  document.querySelector('[data-color="#00345C"]').click();assert.equal(el('undo').disabled,false);
+  document.querySelector('[data-color="#0B63F6"]').click();assert.equal(el('undo').disabled,false);
   el('ratio').value='4:5';el('ratio').dispatchEvent(new dom.window.Event('change'));assert.equal(el('canvas').width,1080);assert.equal(el('canvas').height,1350);
   const canvas=el('canvas'),box=dom.window.CollageCore.frameBoxes(dom.window.CollageCore.defaults())[0];
   const event=(type,x,y)=>{const e=new dom.window.MouseEvent(type,{clientX:x/2,clientY:y/2,button:0});Object.defineProperty(e,'pointerId',{value:7});canvas.dispatchEvent(e);};
