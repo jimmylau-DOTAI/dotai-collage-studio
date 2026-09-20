@@ -1,7 +1,7 @@
 (function (root) {
   'use strict';
   const W = 1080, H = 1080;
-  const size=s=>({w:s.ratio==='4:3'?1440:1080,h:1080});
+  const size=s=>({w:1080,h:s.ratio==='3:4'?1440:1080});
   const layouts = [
     { id: 'grid', name: '經典四格', note: '四張相平均呈現', cells: [[0,0,.5,.5],[.5,0,.5,.5],[0,.5,.5,.5],[.5,.5,.5,.5]] },
     { id: 'story', name: '故事四格', note: '主角、細節、現場', cells: [[0,0,1,.36],[0,.36,.5,.32],[.5,.36,.5,.32],[0,.68,1,.32]] },
@@ -60,25 +60,24 @@
       for(let j=i+2;j<p.length;j++){if(i===0&&j===p.length-1)continue;const c=p[j],d=p[(j+1)%p.length];if(cross(a,b,c)*cross(a,b,d)<=0&&cross(c,d,a)*cross(c,d,b)<=0)return false;}
     }return Math.abs(area)>.05;
   }
-  function cutHandles(state){const {w,h}=size(state),m=state.margin,c=state.cut;return [{key:'top',x:m+c.top*(w-2*m),y:m},{key:'bottom',x:m+c.bottom*(w-2*m),y:h-m},{key:'left',x:m,y:m+c.left*(h-2*m)},{key:'right',x:w-m,y:m+c.right*(h-2*m)}];}
+  function photoArea(state){return root.CollageBrand?root.CollageBrand.measure(size(state),state.brand).photoArea:{x:0,y:0,...size(state)};}
+  function cutHandles(state){const a=photoArea(state),m=state.margin,c=state.cut;return [{key:'top',x:a.x+m+c.top*(a.w-2*m),y:a.y+m},{key:'bottom',x:a.x+m+c.bottom*(a.w-2*m),y:a.y+a.h-m},{key:'left',x:a.x+m,y:a.y+m+c.left*(a.h-2*m)},{key:'right',x:a.x+a.w-m,y:a.y+m+c.right*(a.h-2*m)}];}
   function cutBoxes(state){
-    const {w,h}=size(state),m=state.margin,c=state.cut,dx=c.bottom-c.top,dy=c.right-c.left,x=(c.top+dx*c.left)/(1-dx*dy),y=c.left+dy*x;
+    const a=photoArea(state),m=state.margin,c=state.cut,dx=c.bottom-c.top,dy=c.right-c.left,x=(c.top+dx*c.left)/(1-dx*dy),y=c.left+dy*x;
     const polygons=[[[0,0],[c.top,0],[x,y],[0,c.left]],[[c.top,0],[1,0],[1,c.right],[x,y]],[[0,c.left],[x,y],[c.bottom,1],[0,1]],[[x,y],[1,c.right],[1,1],[c.bottom,1]]];
-    return polygons.map(p=>{const xs=p.map(v=>v[0]),ys=p.map(v=>v[1]),x0=Math.min(...xs),y0=Math.min(...ys),bw=Math.max(...xs)-x0,bh=Math.max(...ys)-y0;return {x:m+x0*(w-2*m),y:m+y0*(h-2*m),w:bw*(w-2*m),h:bh*(h-2*m),angle:0,shape:'polygon',cut:true,mask:{kind:'polygon',points:p.map(([px,py])=>[(px-x0)/bw,(py-y0)/bh])}};});
+    return polygons.map(p=>{const xs=p.map(v=>v[0]),ys=p.map(v=>v[1]),x0=Math.min(...xs),y0=Math.min(...ys),bw=Math.max(...xs)-x0,bh=Math.max(...ys)-y0;return {x:a.x+m+x0*(a.w-2*m),y:a.y+m+y0*(a.h-2*m),w:bw*(a.w-2*m),h:bh*(a.h-2*m),angle:0,shape:'polygon',cut:true,mask:{kind:'polygon',points:p.map(([px,py])=>[(px-x0)/bw,(py-y0)/bh])}};});
   }
-  function frameBoxes(state){const base=state.layout==='cut-grid'?cutBoxes(state):boxes(state.layout,state.margin,state.gap,state.brand,size(state));return base.map((b,i)=>{const s=state.slots[i];if(s.frame)b={...b,...s.frame,angle:0};if(s.mask)b={...b,mask:s.mask,shape:s.mask.kind==='circle'?'circle':'polygon',angle:0};return b;});}
-  function boxes(layoutId, margin=16, gap=12,brand=null,dimensions={w:W,h:H}) {
-    const W=dimensions.w,H=dimensions.h;
+  function frameBoxes(state){const base=state.layout==='cut-grid'?cutBoxes(state):boxes(state.layout,state.margin,state.gap,photoArea(state));return base.map((b,i)=>{const s=state.slots[i];if(s.frame)b={...b,...s.frame,angle:0};if(s.mask)b={...b,mask:s.mask};return b;});}
+  function boxes(layoutId, margin=16, gap=12,dimensions={x:0,y:0,w:W,h:H}) {
+    const {x:ox=0,y:oy=0,w:W,h:H}=dimensions;
     const layout = layouts.find(l=>l.id===layoutId) || layouts[0];
-    const top=brand ? (brand.title ? 270 : brand.logo ? 166 : 0) : 0;
-    const bottom=brand&&brand.footer ? 80 : 0;
     // A half-gap only on internal edges keeps the outside border uniform.
     return layout.cells.map(([x,y,w,h],i) => {
       const b={
-      x: margin + x*(W-2*margin) + (x>0 ? gap/2 : 0),
-      y: top + margin + y*(H-top-bottom-2*margin) + (y>0 ? gap/2 : 0),
+      x: ox + margin + x*(W-2*margin) + (x>0 ? gap/2 : 0),
+      y: oy + margin + y*(H-2*margin) + (y>0 ? gap/2 : 0),
       w: w*(W-2*margin) - (x>0 ? gap/2 : 0) - (x+w<.99999 ? gap/2 : 0),
-      h: h*(H-top-bottom-2*margin) - (y>0 ? gap/2 : 0) - (y+h<.99999 ? gap/2 : 0),
+      h: h*(H-2*margin) - (y>0 ? gap/2 : 0) - (y+h<.99999 ? gap/2 : 0),
       shape:layout.treatment||'rect',angle:0
       };
       if(b.shape==='polaroid'){b.x+=34;b.y+=30;b.w-=68;b.h-=82;b.angle=[-4,3,3,-3][i];}
@@ -125,21 +124,16 @@
       if(layouts.find(l=>l.id===state.layout).overlap&&i>0&&state.gap){ctx.strokeStyle=state.bg;ctx.lineWidth=state.gap*2;ctx.stroke();}
       ctx.restore();
     });
-    const brand=state.brand;
-    if(brand){
-      const variant=logoVariant(state.bg),ink=variant==='white'?'#FFFFFF':'#0F0F0F';
-      if(brand.logo&&logos[variant]){const logo=logos[variant],width=218;ctx.drawImage(logo,56,34,width,width*(logo.naturalHeight||logo.height)/(logo.naturalWidth||logo.width));}
-      ctx.fillStyle=ink;ctx.textBaseline='alphabetic';
-      if(brand.title){let size=58;do{ctx.font=`700 ${size}px "PingFang TC", "Noto Sans CJK TC", sans-serif`;if(ctx.measureText(brand.title).width<=968)break;size--;}while(size>18);ctx.fillText(brand.title,56,220,968);}
-      if(brand.footer){ctx.font='500 25px sans-serif';ctx.fillText('DotAI',56,1314);ctx.fillRect(900,1298,124,3);}
-    }
+    const brand=root.CollageBrand&&root.CollageBrand.measure({w:W,h:H},state.brand);
+    if(brand?.band){ctx.fillStyle='#FFFFFF';ctx.fillRect(brand.band.x,brand.band.y,brand.band.w,brand.band.h);}
+    if(brand?.logo){const logo=images[brand.logo.assetId];if(!logo)throw new Error('已選標誌未能讀取');ctx.drawImage(logo,brand.logo.x,brand.logo.y,brand.logo.w,brand.logo.h);}
     ctx.restore(); return rects;
   }
   function defaults() {
-    return { layout:'grid', ratio:'1:1',cut:{top:.43,bottom:.59,left:.46,right:.56},margin:18, gap:12, radius:0, bg:'#0B63F6', brand:{logo:false,title:'',footer:false}, slots:[
+    return { layout:'grid', ratio:'1:1',cut:{top:.5,bottom:.5,left:.5,right:.5},margin:18, gap:12, radius:0, bg:'#0B63F6', brand:{placement:'none',square:null,wordmark:null,squareSize:.12,wordmarkSize:.24,padding:24}, slots:[
       {photo:0,x:.52,y:.53,zoom:1}, {photo:1,x:.63,y:.52,zoom:1},
       {photo:2,x:.52,y:.5,zoom:1}, {photo:3,x:.72,y:.56,zoom:1}
     ] };
   }
-  root.CollageCore={W,H,layouts,clamp,boxes,geometry,draw,defaults,localPoint,hit,logoVariant,presetMask,validPolygon,frameBoxes,size,cutHandles};
+  root.CollageCore={W,H,layouts,clamp,boxes,geometry,draw,defaults,localPoint,hit,logoVariant,presetMask,validPolygon,frameBoxes,size,cutHandles,photoArea};
 })(typeof globalThis!=='undefined' ? globalThis : this);
