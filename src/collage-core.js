@@ -48,6 +48,25 @@
     ['cut-grid','可調斜切四格',[[0,0,.5,.5],[.5,0,.5,.5],[0,.5,.5,.5],[.5,.5,.5,.5]]]
   ].map(([id,name,cells,overlap])=>({id,name,cells,overlap:!!overlap,note:id==='cut-grid'?'拖四個端點，共用分界同步改變':'四張原相・可選背景配色'})));
   const clamp = (v, lo=0, hi=1) => Math.min(hi, Math.max(lo,v));
+  // Keep the original four-photo catalogue; other counts get full, gap-free grids.
+  function layoutsFor(count){
+    if(!Number.isInteger(count)||count<1||count>9)throw new Error('請選擇 1–9 張相片');
+    if(count===4)return layouts;
+    const make=(kind,name,cells)=>({id:`${kind}-${count}`,name,cells,overlap:false});
+    if(count===1)return[make('single','單張全圖',[[0,0,1,1]])];
+    const rows=Array.from({length:count},(_,i)=>[0,i/count,1,1/count]);
+    const columns=rows.map(([x,y,w,h])=>[y,x,h,w]);
+    const rowCount=Math.ceil(Math.sqrt(count)),cells=[];
+    let remaining=count;
+    for(let row=0;row<rowCount;row++){
+      const cols=Math.ceil(remaining/(rowCount-row));remaining-=cols;
+      for(let col=0;col<cols;col++)cells.push([col/cols,row/rowCount,1/cols,1/rowCount]);
+    }
+    const tail=layoutsFor(count-1)[0].cells;
+    return [make('auto','平均排版',cells),make('rows','橫向分格',rows),make('cols','直向分格',columns),
+      make('hero','上大下小',[[0,0,1,.55],...tail.map(([x,y,w,h])=>[x,.55+y*.45,w,h*.45])])];
+  }
+  function layoutById(id){return layouts.find(l=>l.id===id)||Array.from({length:9},(_,i)=>layoutsFor(i+1)).flat().find(l=>l.id===id)||layouts[0]}
   function presetMask(name){
     const shapes={rect:[[0,0],[1,0],[1,1],[0,1]],triangle:[[.5,0],[1,1],[0,1]],diagonal:[[.15,0],[1,0],[.85,1],[0,1]],diamond:[[.5,0],[1,.5],[.5,1],[0,.5]],hexagon:[[.25,0],[.75,0],[1,.5],[.75,1],[.25,1],[0,.5]]};
     return name==='circle'?{kind:'circle'}:{kind:'polygon',points:(shapes[name]||shapes.rect).map(p=>p.slice())};
@@ -67,10 +86,10 @@
     const polygons=[[[0,0],[c.top,0],[x,y],[0,c.left]],[[c.top,0],[1,0],[1,c.right],[x,y]],[[0,c.left],[x,y],[c.bottom,1],[0,1]],[[x,y],[1,c.right],[1,1],[c.bottom,1]]];
     return polygons.map(p=>{const xs=p.map(v=>v[0]),ys=p.map(v=>v[1]),x0=Math.min(...xs),y0=Math.min(...ys),bw=Math.max(...xs)-x0,bh=Math.max(...ys)-y0;return {x:a.x+m+x0*(a.w-2*m),y:a.y+m+y0*(a.h-2*m),w:bw*(a.w-2*m),h:bh*(a.h-2*m),angle:0,shape:'polygon',cut:true,mask:{kind:'polygon',points:p.map(([px,py])=>[(px-x0)/bw,(py-y0)/bh])}};});
   }
-  function frameBoxes(state){const base=state.layout==='cut-grid'?cutBoxes(state):boxes(state.layout,state.margin,state.gap,photoArea(state));return base.map((b,i)=>{const s=state.slots[i];if(s.frame)b={...b,...s.frame,angle:0};if(s.mask)b={...b,mask:s.mask};return b;});}
+  function frameBoxes(state){const available=layoutsFor(state.slots.length),layout=available.find(l=>l.id===state.layout)||available[0];const base=layout.id==='cut-grid'?cutBoxes(state):boxes(layout.id,state.margin,state.gap,photoArea(state));return base.map((b,i)=>{const s=state.slots[i];if(s.frame)b={...b,...s.frame,angle:0};if(s.mask)b={...b,mask:s.mask};return b;});}
   function boxes(layoutId, margin=16, gap=12,dimensions={x:0,y:0,w:W,h:H}) {
     const {x:ox=0,y:oy=0,w:W,h:H}=dimensions;
-    const layout = layouts.find(l=>l.id===layoutId) || layouts[0];
+    const layout = layoutById(layoutId);
     // A half-gap only on internal edges keeps the outside border uniform.
     return layout.cells.map(([x,y,w,h],i) => {
       const b={
@@ -121,7 +140,7 @@
       ctx.clip();
       if (image) { const g=geometry(image,b,slot); ctx.drawImage(image,g.x,g.y,g.w,g.h); }
       if(b.cut&&state.gap){ctx.strokeStyle=state.bg;ctx.lineWidth=state.gap;ctx.lineJoin='round';ctx.stroke();}
-      if(layouts.find(l=>l.id===state.layout).overlap&&i>0&&state.gap){ctx.strokeStyle=state.bg;ctx.lineWidth=state.gap*2;ctx.stroke();}
+      if(layoutById(state.layout).overlap&&i>0&&state.gap){ctx.strokeStyle=state.bg;ctx.lineWidth=state.gap*2;ctx.stroke();}
       ctx.restore();
     });
     const brand=root.CollageBrand&&root.CollageBrand.measure({w:W,h:H},state.brand);
@@ -135,5 +154,5 @@
       {photo:2,x:.52,y:.5,zoom:1}, {photo:3,x:.72,y:.56,zoom:1}
     ] };
   }
-  root.CollageCore={W,H,layouts,clamp,boxes,geometry,draw,defaults,localPoint,hit,logoVariant,presetMask,validPolygon,frameBoxes,size,cutHandles,photoArea};
+  root.CollageCore={W,H,layouts,layoutsFor,clamp,boxes,geometry,draw,defaults,localPoint,hit,logoVariant,presetMask,validPolygon,frameBoxes,size,cutHandles,photoArea};
 })(typeof globalThis!=='undefined' ? globalThis : this);

@@ -13,6 +13,7 @@ const copy=v=>JSON.parse(JSON.stringify(v));
     const key=k=>canvas.dispatchEvent(new window.KeyboardEvent('keydown',{key:k,bubbles:true}));
     // Produce one post-spy render, then return to the shipped defaults.
     el('zoom-in').click();el('undo').click();
+    el('frame-edit').checked=true;el('frame-edit').dispatchEvent(new window.Event('change'));
     const initial=snap(),initialFrame=initial.slots[0].frame?copy(initial.slots[0].frame):null;
     pointer('pointerdown',50,50);pointer('pointermove',80,80);pointer('pointerup',80,80);
     const moved=snap();assert(moved.slots[0].frame);assert.notDeepEqual(moved.slots[0].frame,initialFrame,'move changes exact frame geometry');

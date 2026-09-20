@@ -13,6 +13,7 @@ const {openEditor}=require('./helpers/editor-harness.cjs');
     await upload('logo-wordmark',file('wordmark.png','#00AA00',600,100));
     await upload('logo-square',file('square.png','#AA0000',100,100));
     assert(!el('logo-wordmark-preview').hidden&&!el('logo-square-preview').hidden);
+    el('frame-edit').checked=true;el('frame-edit').dispatchEvent(new window.Event('change'));
     const b=C.frameBoxes(current)[0];
     pointer('pointerdown',b.x+20,b.y+20);pointer('pointermove',b.x+100,b.y+60);pointer('pointerup',b.x+100,b.y+60);
     assert(current.slots[0].frame,'Move control must create a manual frame');

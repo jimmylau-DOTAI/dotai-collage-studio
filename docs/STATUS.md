@@ -1,6 +1,16 @@
 # Current local handoff — 2026-09-20
 
-Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/social-post-editor-mvp`.
+Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/multi-photo-crop`.
+
+## Multi-photo and fixed-frame crop update
+
+- Requested from the screenshot: replace the fixed four-slot assumption, add double-click replacement, prevent accidental frame resize while cropping.
+- A batch picker accepts 1–9 images and replaces the whole set in one undoable operation. Matching layouts are shown by count; four photos retain all 29 templates. Brand, ratio and background are retained.
+- Any failed or over-limit batch leaves the artwork intact. Latest file selections win; outdated reads cannot overwrite a newer group. Defaults remain generated demos, never user photos.
+- Double-click a thumbnail or canvas photo to choose its replacement. Normal dragging pans only the clipped image; frame handles are opt-in through 調整相框（進階）. 還原排版相框 clears manual positions without resetting image crops.
+- Verification: `npm run check` passed all 12 suites and privacy checks; `git diff --check` passed. This is native Canvas/jsdom, not live browser acceptance. Tests cover the reproduced corner-resize bug, all photo counts, batch failure/races, double-click dispatch, actual panning pixels, and a batch replacing photos during an unfinished drag. Refreshing the built page loses current unsaved images/edits; export first.
+
+## Previous integrated stage
 
 - Current outputs: square 1080×1080 and portrait 1080×1350 (4:5), default white background, 29 visual layout choices.
 - Photo replacement, zoom buttons, local logo previews/placements and saved custom colors are implemented. Browser/manual acceptance remains pending.
