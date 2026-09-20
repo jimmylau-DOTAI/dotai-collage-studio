@@ -30,7 +30,7 @@ const copy=v=>JSON.parse(JSON.stringify(v));
   let photos=window.document.querySelectorAll('.photo');drag(photos[0],'dragstart');drag(photos[1],'drop');assert.deepEqual(state.slots.map(s=>s.photo),[ids[1],ids[0],ids[2],ids[3]]);el('undo').click();assert.deepEqual(state.slots.map(s=>s.photo),ids);
   // Select third and pull its upper-right shared corner right/up: third becomes largest.
   photos=window.document.querySelectorAll('.photo');photos[2].click();
-  const handles=C.flexHandles(state,2),h=handles.find(h=>h.corner==='tr');assert(h);
+  el('frame-mode').click();const handles=C.flexHandles(state,2),h=handles.find(h=>h.corner==='tr');assert(h);
   pointer('pointerdown',h.x,h.y);pointer('pointermove',800,270);pointer('pointerup',800,270);
   const boxes=copy(C.frameBoxes(state)),areas=boxes.map(b=>b.w*b.h);assert(areas[2]>Math.max(areas[0],areas[1],areas[3]));
   assert.deepEqual(state.slots.map(s=>s.photo),ids,'Resizing preserves photo placement');
@@ -38,8 +38,8 @@ const copy=v=>JSON.parse(JSON.stringify(v));
   el('undo').click();assert.deepEqual(copy(C.frameBoxes(state)),rects);el('redo').click();assert.deepEqual(copy(C.frameBoxes(state)),boxes);
   el('slant-toggle').click();assert(state.customCells);const tilted=copy(C.frameBoxes(state));el('canvas-zoom-in').click();assert.deepEqual(copy(C.frameBoxes(state)),tilted);
   const output=await a.download(),meta=await sharp(output).metadata();assert.deepEqual([meta.width,meta.height],[1080,1080]);
-  // Dedicated drag grip swaps the selected photo onto the actual canvas target.
-  const target=C.frameBoxes(state)[1],beforeGrip=state.slots.map(s=>s.photo);drag(el('swap-grip'),'dragstart');drag(el('canvas'),'drop',target.x+target.w/2,target.y+target.h/2);assert.equal(state.slots[1].photo,beforeGrip[2]);assert.deepEqual(copy(C.frameBoxes(state)),tilted);el('undo').click();
+  // Thumbnail drag swaps onto the actual canvas target without a separate swap button.
+  const target=C.frameBoxes(state)[1],beforeGrip=state.slots.map(s=>s.photo);drag(window.document.querySelectorAll('.photo')[2],'dragstart');drag(el('canvas'),'drop',target.x+target.w/2,target.y+target.h/2);assert.equal(state.slots[1].photo,beforeGrip[2]);assert.deepEqual(copy(C.frameBoxes(state)),tilted);el('undo').click();
   el('make-hero').click();const hero=C.frameBoxes(state),areasHero=hero.map(b=>b.w*b.h);assert(areasHero[1]>Math.max(areasHero[0],areasHero[2],areasHero[3]));
   const shifted=(type,b)=>{const e=new window.MouseEvent(type,{bubbles:true,button:0,shiftKey:true,clientX:(b.x+b.w/2)/2,clientY:(b.y+b.h/2)/2});Object.defineProperty(e,'pointerId',{value:22});el('canvas').dispatchEvent(e)};
   const shiftIds=state.slots.map(s=>s.photo),shiftFrames=copy(C.frameBoxes(state));shifted('pointerdown',hero[1]);shifted('pointermove',hero[3]);shifted('pointerup',hero[3]);assert.equal(state.slots[3].photo,shiftIds[1]);assert.equal(state.slots[1].photo,shiftIds[3]);assert.deepEqual(copy(C.frameBoxes(state)),shiftFrames);el('undo').click();assert.deepEqual(state.slots.map(s=>s.photo),shiftIds);

@@ -4,6 +4,8 @@ Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/direct-photo-flex-lay
 
 ## Current: direct photo tools and flexible shared dividers
 
+- Latest interaction: clicking a photo enters crop-only mode and hides shared-frame handles. Explicit frame adjustment retains flexible layout editing. Removed the separate swap grip: stationary 450ms hold arms a swap, immediate motion locks into crop, release/cancel clears the timer. Thumbnail and Shift swaps remain. All 18 suites and privacy checks pass; real-browser gesture feel remains PENDING.
+
 - Follow-up: double-click now selects rather than opens the replacement picker; explicit upload remains available. Command/Ctrl Z and Shift redo share button history, excluding text-editing targets. Selecting another template clears inherited slant and cut coordinates. Single-frame slant is not implemented: awaiting clarification whether the requested scope is one frame or one template. All 17 suites and privacy checks passed; real browser acceptance remains pending.
 
 - Empty start with explicit optional demo. First real import replaces all demo slots, including via single-file replacement. Reset returns to empty; image-dependent controls/exports are disabled until photos exist.

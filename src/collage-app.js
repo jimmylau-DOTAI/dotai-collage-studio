@@ -6,7 +6,7 @@ const canvas=$('canvas'),ctx=canvas.getContext('2d'),overlay=$('edit-overlay'),o
 const photos=JSON.parse($('photo-data').textContent),images=[],history=[],future=[],thumbnailCache=new WeakMap(),uploadTokens=[];
 let state=C.defaults(),selected=0,ready=false,gesture=null,downloadUrl=null,zoomBefore=null,palette=null;
 state.slots=[];state.demo=false;
-let pageW=1080,pageH=1080;
+let pageW=1080,pageH=1080,holdTimer=null,frameMode=false;
 let layoutCount=0,batchToken=0,wheelTimer=null,dragSource=null,dropTarget=-1;
 $('photos').before($('batch-upload-ui').content.cloneNode(true));
 $('layouts').after($('slant-ui').content.cloneNode(true));
@@ -26,12 +26,12 @@ function draw(){
  const b=box(),scale=pageW/(canvas.getBoundingClientRect().width||540);
  ox.strokeStyle='#0059FF';ox.lineWidth=2*scale;
  if(b.mask?.kind==='polygon'){ox.beginPath();b.mask.points.forEach(([x,y],i)=>ox[i?'lineTo':'moveTo'](b.x+x*b.w,b.y+y*b.h));ox.closePath();ox.stroke()}else ox.strokeRect(b.x,b.y,b.w,b.h);
- ox.fillStyle='#FFFFFF';for(const h of C.flexHandles(state,selected)){ox.beginPath();ox.arc(h.x,h.y,6*scale,0,Math.PI*2);ox.fill();ox.stroke()}
+ ox.fillStyle='#FFFFFF';for(const h of (frameMode?C.flexHandles(state,selected):[])){ox.beginPath();ox.arc(h.x,h.y,6*scale,0,Math.PI*2);ox.fill();ox.stroke()}
  if(dropTarget>=0&&dropTarget!==selected){const target=C.frameBoxes(state)[dropTarget];if(target){ox.setLineDash([6*scale,4*scale]);ox.strokeRect(target.x,target.y,target.w,target.h);ox.setLineDash([])}}
 }
 function controls(){
  const has=state.slots.length>0;selected=Math.max(0,Math.min(selected,state.slots.length-1));renderLayouts();$('photo-count').textContent=state.demo?'示範圖：加入你嘅相片時會全部取代':'目前 '+state.slots.length+' / 9 張';$('add-files').disabled=!state.demo&&state.slots.length>=9;
- $('empty-state').hidden=has;$('canvas-tools').hidden=!has;$('selected-label').textContent='相片 '+(selected+1)+' · '+Math.round((state.slots[selected]?.zoom||1)*100)+'%';$('make-hero').disabled=state.slots.length<2;$('layout-name').textContent=state.customCells?'自訂比例 · 框內移圖':'框內移圖 · 圓點改比例';
+ $('empty-state').hidden=has;$('canvas-tools').hidden=!has;$('selected-label').textContent='相片 '+(selected+1)+' · '+Math.round((state.slots[selected]?.zoom||1)*100)+'%';$('make-hero').disabled=state.slots.length<2;$('layout-name').textContent=frameMode?'調整相框 · 圓點改比例':'調構圖 · 只調整所選相片';canvas.dataset.mode=frameMode?'frame':'crop';$('frame-mode').textContent=frameMode?'完成相框調整':'調整相框';$('frame-mode').setAttribute('aria-pressed',String(frameMode));
  ['zoom','zoom-in','zoom-out','center','export-top','export-bottom'].forEach(id=>$(id).disabled=!has);
  const tilted=!!(state.slant.x||state.slant.y);$('slant-toggle').setAttribute('aria-pressed',String(tilted));$('slant-toggle').textContent=tilted?'關閉斜切':'啟用斜切';$('slant-toggle').disabled=state.slots.length<2;
  ['x','y'].forEach(axis=>{$('slant-'+axis).value=Math.round(state.slant[axis]*100);$('slant-'+axis+'-value').value=Math.round(state.slant[axis]*100);$('slant-'+axis).disabled=state.slots.length<2});$('slant-reset').disabled=!tilted;
@@ -50,10 +50,10 @@ function syncPhotoSelection(){finishZoom();document.querySelectorAll('.photo').f
 function thumbs(){const out=$('photos');out.replaceChildren();state.slots.forEach((s,i)=>{
  const card=document.createElement('div'),e=document.createElement('button'),image=document.createElement('img'),label=document.createElement('span'),remove=document.createElement('button');card.className='photo-card';e.className='photo';e.setAttribute('aria-pressed',String(i===selected));e.title='點選調構圖；拖到另一張交換';e.draggable=true;
  e.ondragstart=event=>beginDrag(i,event);e.ondragover=event=>{if(dragSource){event.preventDefault();e.classList.add('drop-target')}};e.ondragleave=()=>e.classList.remove('drop-target');e.ondrop=event=>dropPhoto(i,event);e.ondragend=()=>{dragSource=null;dropTarget=-1;document.querySelectorAll('.drop-target').forEach(n=>n.classList.remove('drop-target'));draw()};
- image.src=thumbnail(images[s.photo]);image.alt='相片 '+(i+1)+' 預覽';image.draggable=false;label.textContent='相片 '+(i+1);e.append(image,label);e.onclick=()=>{selected=i;syncPhotoSelection();controls();draw()};e.ondblclick=()=>selectPhoto(i);remove.className='photo-remove';remove.textContent='移除';remove.setAttribute('aria-label','移除相片 '+(i+1));remove.disabled=state.slots.length===1;remove.onclick=()=>{if(state.slots.length===1)return;batchToken++;rememberAnd(()=>{state.slots=state.slots.filter((_,index)=>index!==i);if(selected>i)selected--;reflow()});say('已移除相片；可按復原還原')};card.append(e,remove);out.append(card)
+ image.src=thumbnail(images[s.photo]);image.alt='相片 '+(i+1)+' 預覽';image.draggable=false;label.textContent='相片 '+(i+1);e.append(image,label);e.onclick=()=>{frameMode=false;selected=i;syncPhotoSelection();controls();draw()};e.ondblclick=()=>selectPhoto(i);remove.className='photo-remove';remove.textContent='移除';remove.setAttribute('aria-label','移除相片 '+(i+1));remove.disabled=state.slots.length===1;remove.onclick=()=>{if(state.slots.length===1)return;batchToken++;rememberAnd(()=>{state.slots=state.slots.filter((_,index)=>index!==i);if(selected>i)selected--;reflow()});say('已移除相片；可按復原還原')};card.append(e,remove);out.append(card)
 })}
 function reflow(){delete state.customCells;state.layout=C.layoutsFor(state.slots.length)[0].id;state.cut={top:.5,bottom:.5,left:.5,right:.5};state.slots.forEach(s=>{delete s.frame;delete s.mask});if(state.slots.length===1)state.slant={x:0,y:0}}
-function selectPhoto(index){finishZoom();selected=index;syncPhotoSelection();controls();draw();canvas.focus()}
+function selectPhoto(index){frameMode=false;finishZoom();selected=index;syncPhotoSelection();controls();draw();canvas.focus()}
 function refresh(){controls();thumbs();draw()}
 function settleGesture(){if(gesture)finish({pointerId:gesture.id})}
 function rememberAnd(fn){settleGesture();finishZoom();const before=clone(state);fn();refresh();if(changed(before))save(before)}
@@ -65,7 +65,7 @@ function dropPhoto(index,e){e.preventDefault();const from=state.slots.indexOf(dr
 canvas.addEventListener('dragover',e=>{if(!dragSource)return;e.preventDefault();dropTarget=atPoint(coords(e));draw()});
 canvas.addEventListener('drop',e=>dropPhoto(atPoint(coords(e)),e));
 canvas.addEventListener('dragleave',()=>{dropTarget=-1;draw()});
-$('swap-grip').ondragstart=e=>beginDrag(selected,e);$('swap-grip').ondragend=()=>{dragSource=null;dropTarget=-1;draw()};
+$('frame-mode').onclick=()=>{settleGesture();frameMode=!frameMode;refresh()};
 $('canvas-zoom-in').onclick=()=>$('zoom-in').click();$('canvas-zoom-out').onclick=()=>$('zoom-out').click();$('canvas-center').onclick=()=>$('center').click();
 $('empty-add').onclick=()=>$('add-files').click();
 $('show-demo').onclick=()=>rememberAnd(()=>{state=C.defaults();state.demo=true;selected=0});
@@ -76,16 +76,16 @@ canvas.addEventListener('dblclick',e=>{if(!ready)return;const p=coords(e),rects=
 $('slant-toggle').onclick=()=>rememberAnd(()=>{state.slant=state.slant.x||state.slant.y?{x:0,y:0}:{x:.08,y:.06}});
 $('slant-reset').onclick=()=>rememberAnd(()=>{state.slant={x:0,y:0};state.cut={top:.5,bottom:.5,left:.5,right:.5};state.slots.forEach(s=>{delete s.frame;delete s.mask})});
 ['x','y'].forEach(axis=>{$('slant-'+axis).oninput=e=>{settleGesture();zoomBefore??=clone(state);state.slant[axis]=Number(e.target.value)/100;controls();draw()};$('slant-'+axis).onchange=finishZoom;$('slant-'+axis).onblur=finishZoom});
-canvas.addEventListener('pointerdown',e=>{if(!ready||gesture||e.button!==0||!state.slots.length)return;finishZoom();const p=coords(e),scale=pageW/(canvas.getBoundingClientRect().width||540),handle=!e.shiftKey&&C.flexHandles(state,selected).find(h=>Math.hypot(h.x-p.x,h.y-p.y)<10*scale);const i=handle?selected:atPoint(p);if(i<0)return;selected=i;const b=C.frameBoxes(state)[i],slot=state.slots[i],g=C.geometry(images[slot.photo],b,slot);gesture={id:e.pointerId,index:i,action:handle?'flex':e.shiftKey?'swap':'crop',corner:handle?.corner,start:p,b,slot:{x:slot.x,y:slot.y},g,before:clone(state),moved:false};canvas.setPointerCapture(e.pointerId);refresh()});
-canvas.addEventListener('pointermove',e=>{if(!gesture||gesture.id!==e.pointerId)return;const p=coords(e),dx=p.x-gesture.start.x,dy=p.y-gesture.start.y;if(!gesture.moved&&Math.abs(dx)+Math.abs(dy)<2)return;gesture.moved=true;
+canvas.addEventListener('pointerdown',e=>{if(!ready||gesture||e.button!==0||!state.slots.length)return;finishZoom();const p=coords(e),scale=pageW/(canvas.getBoundingClientRect().width||540),handle=frameMode&&!e.shiftKey&&C.flexHandles(state,selected).find(h=>Math.hypot(h.x-p.x,h.y-p.y)<10*scale);const i=handle?selected:atPoint(p);if(i<0)return;if(!handle)frameMode=false;selected=i;const b=C.frameBoxes(state)[i],slot=state.slots[i],g=C.geometry(images[slot.photo],b,slot);gesture={id:e.pointerId,index:i,action:handle?'flex':e.shiftKey?'swap':'crop',corner:handle?.corner,start:p,b,slot:{x:slot.x,y:slot.y},g,before:clone(state),moved:false};canvas.setPointerCapture(e.pointerId);window.clearTimeout(holdTimer);if(gesture.action==='crop'&&state.slots.length>1)holdTimer=window.setTimeout(()=>{if(!gesture||gesture.moved)return;gesture.action='swap';canvas.style.cursor='grabbing';say('已抓起相片：拖去另一張交換，放開取消');draw()},450);refresh()});
+canvas.addEventListener('pointermove',e=>{if(!gesture||gesture.id!==e.pointerId)return;const p=coords(e),dx=p.x-gesture.start.x,dy=p.y-gesture.start.y;if(!gesture.moved&&Math.abs(dx)+Math.abs(dy)<2)return;gesture.moved=true;window.clearTimeout(holdTimer);
  const s0=state.slots[gesture.index];
  if(gesture.action==='flex')state.customCells=C.resizeLayout(gesture.before,gesture.index,gesture.corner,p);
  else if(gesture.action==='swap')dropTarget=atPoint(p);
  else{if(gesture.g.overflowX)s0.x=C.clamp(gesture.slot.x-dx/gesture.g.overflowX);if(gesture.g.overflowY)s0.y=C.clamp(gesture.slot.y-dy/gesture.g.overflowY)}
  refresh()});
-function finish(e,cancel=false){if(!gesture||gesture.id!==e.pointerId)return;const g=gesture,target=dropTarget;gesture=null;dropTarget=-1;if(cancel){state=g.before;refresh();return}if(g.action==='swap'&&g.moved){swapPhotos(g.index,target);return}if(g.moved&&changed(g.before))save(g.before);draw()}
+function finish(e,cancel=false){if(!gesture||gesture.id!==e.pointerId)return;window.clearTimeout(holdTimer);canvas.style.cursor='';const g=gesture,target=dropTarget;gesture=null;dropTarget=-1;if(cancel){state=g.before;refresh();return}if(g.action==='swap'){if(g.moved)swapPhotos(g.index,target);draw();say(target>=0&&target!==g.index?'已交換相片；可復原':'已返回調構圖');return}if(g.moved&&changed(g.before))save(g.before);draw()}
 canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',e=>finish(e,true));canvas.addEventListener('lostpointercapture',e=>finish(e,true));
-canvas.addEventListener('keydown',e=>{if(!state.slots.length)return;if(e.key==='Escape'){if(gesture){const g=gesture;gesture=null;dropTarget=-1;state=g.before;refresh()}return}if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const d=e.shiftKey?.05:.01,dx=e.key==='ArrowLeft'?-d:e.key==='ArrowRight'?d:0,dy=e.key==='ArrowUp'?-d:e.key==='ArrowDown'?d:0;rememberAnd(()=>{const s=state.slots[selected];s.x=C.clamp(s.x-dx);s.y=C.clamp(s.y-dy)});});
+canvas.addEventListener('keydown',e=>{if(!state.slots.length)return;if(e.key==='Escape'){if(gesture){window.clearTimeout(holdTimer);canvas.style.cursor='';const g=gesture;gesture=null;dropTarget=-1;state=g.before;refresh()}return}if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;e.preventDefault();const d=e.shiftKey?.05:.01,dx=e.key==='ArrowLeft'?-d:e.key==='ArrowRight'?d:0,dy=e.key==='ArrowUp'?-d:e.key==='ArrowDown'?d:0;rememberAnd(()=>{const s=state.slots[selected];s.x=C.clamp(s.x-dx);s.y=C.clamp(s.y-dy)});});
 function renderLayouts(){const count=state.slots.length;if(layoutCount===count)return;layoutCount=count;$('layouts').replaceChildren();if(!count)return;C.layoutsFor(count).forEach(l=>{const e=document.createElement('button'),svg=document.createElementNS('http://www.w3.org/2000/svg','svg'),label=document.createElement('span');e.className='layout';e.dataset.layout=l.id;svg.classList.add('layout-preview');svg.setAttribute('viewBox','0 0 100 100');svg.setAttribute('aria-hidden','true');l.cells.forEach(([x,y,w,h])=>{const r=document.createElementNS('http://www.w3.org/2000/svg','rect');r.setAttribute('x',String(x*100+3));r.setAttribute('y',String(y*100+3));r.setAttribute('width',String(w*100-6));r.setAttribute('height',String(h*100-6));svg.append(r)});label.textContent=l.name;e.append(svg,label);e.onclick=()=>rememberAnd(()=>{delete state.customCells;state.layout=l.id;state.slots.forEach(s=>{delete s.frame;delete s.mask});state.slant=l.id==='cut-grid'?{x:.08,y:.06}:{x:0,y:0};state.cut={top:.5,bottom:.5,left:.5,right:.5}});$('layouts').append(e)})}
 let colorStorage;try{colorStorage=window.localStorage}catch{}
 palette=CollagePalette.mount({document,storage:colorStorage,getColor:()=>state.bg,applyColor:color=>rememberAnd(()=>state.bg=color),notify:say,prompt:(...args)=>window.prompt(...args)});
