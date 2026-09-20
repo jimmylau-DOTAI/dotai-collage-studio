@@ -13,11 +13,10 @@ const {openEditor}=require('./helpers/editor-harness.cjs');
     await upload('logo-wordmark',file('wordmark.png','#00AA00',600,100));
     await upload('logo-square',file('square.png','#AA0000',100,100));
     assert(!el('logo-wordmark-preview').hidden&&!el('logo-square-preview').hidden);
-    el('frame-edit').checked=true;el('frame-edit').dispatchEvent(new window.Event('change'));
     const b=C.frameBoxes(current)[0];
     pointer('pointerdown',b.x+20,b.y+20);pointer('pointermove',b.x+100,b.y+60);pointer('pointerup',b.x+100,b.y+60);
-    assert(current.slots[0].frame,'Move control must create a manual frame');
-    const initialFrame=JSON.parse(JSON.stringify(current.slots[0].frame));
+    assert(!current.slots[0].frame,'Dragging must not create overlapping manual frames');
+    const initialFrame=JSON.parse(JSON.stringify(C.frameBoxes(current)[0]));
     const checkFrames=()=>{
       const area=B.measure(C.size(current),current.brand).photoArea;
       for(const box of C.frameBoxes(current)){
@@ -27,12 +26,12 @@ const {openEditor}=require('./helpers/editor-harness.cjs');
     };
     change('brand-placement','top');checkFrames();
     assert.deepEqual([el('brand-size').min,el('brand-size').max],['12','40']);
-    const oldFrame=JSON.parse(JSON.stringify(current.slots[0].frame));
+    const oldFrame=JSON.parse(JSON.stringify(C.frameBoxes(current)[0]));
     change('brand-size','40');change('brand-padding','64');checkFrames();
-    assert.notDeepEqual(current.slots[0].frame,oldFrame,'Changing band dimensions must remap a manual frame');
+    assert.notDeepEqual(C.frameBoxes(current)[0],oldFrame,'Changing band dimensions must reflow photo frames');
     change('brand-placement','bottom');checkFrames();
     change('brand-placement','none');checkFrames();
-    for(const key of ['x','y','w','h'])assert(Math.abs(current.slots[0].frame[key]-initialFrame[key])<.001,'Brand round trip retains '+key);
+    for(const key of ['x','y','w','h'])assert(Math.abs(C.frameBoxes(current)[0][key]-initialFrame[key])<.001,'Brand round trip retains '+key);
     change('brand-placement','corner');
     assert.deepEqual([el('brand-size').min,el('brand-size').max],['6','24']);
     change('brand-placement','top');
@@ -55,6 +54,6 @@ const {openEditor}=require('./helpers/editor-harness.cjs');
     assert(window.localStorage.getItem('dotai-collage-saved-colors-v1').includes('#123456'));
     assert(!el('swatches').textContent.includes('IG 藍'));
     assert.equal(app.errors.length,0);
-    console.log('PASS: actual logo uploads, manual-frame remap, size ranges, removal undo, palette wiring and both exported JPEG logo pixels.');
+    console.log('PASS: actual logo uploads, constrained-frame reflow, size ranges, removal undo, palette wiring and both exported JPEG logo pixels.');
   }finally{app.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

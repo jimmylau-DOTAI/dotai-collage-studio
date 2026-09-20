@@ -1,8 +1,18 @@
 # Current local handoff — 2026-09-20
 
-Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/multi-photo-crop`.
+Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/constrained-frames-slant`.
 
-## Multi-photo and fixed-frame crop update
+## Current: constrained frames, photo controls, universal slant
+
+- Removed the confusing advanced free-frame handles, not merely hidden them. Every canvas drag crops inside the chosen frame; photo zoom cannot resize frames. Intentional picture-in-picture layouts are excluded from the visible catalogue.
+- Added append picker and an independently labelled remove button per thumbnail (minimum one, maximum nine). Remaining photos retain IDs, crop offsets and zoom; add/remove are undoable and reflow the layout. Whole-set replacement is a separate expandable action.
+- Catalogue counts for 1–9 photos: 1, 14, 17, 26, 17, 16, 17, 17, 15. Directional hero arrangements and proportions extend the previous four-template variable-count catalogue.
+- Every 2–9 photo layout has visible slant controls, reset and grouped undo. Shared boundary knots are warped together to avoid overlaps/cracks at T junctions. Gutters are painted after all photos to prevent coloured antialias seams.
+- Canva reference: https://www.canva.com/en_gb/help/using-frames-variantb/ — media resizes and moves inside its frame. We retain Jimmy's existing double-click-to-replace shortcut, rather than claiming identical Canva shortcuts.
+- Verification: `npm run check` passed all 14 suites plus privacy checks, and `git diff --check` passed. Includes 1,112 geometry/ratio/extreme combinations and real preview/JPEG gutter pixels. Live browser/manual acceptance remains pending; no alternate route was used to bypass the earlier local-file browser restriction.
+- Refreshing the same built page loads this update but discards unsaved artwork: export first. No push, PR or deployment is authorized for this iteration.
+
+## Previous: multi-photo and fixed-frame crop update
 
 - Requested from the screenshot: replace the fixed four-slot assumption, add double-click replacement, prevent accidental frame resize while cropping.
 - A batch picker accepts 1–9 images and replaces the whole set in one undoable operation. Matching layouts are shown by count; four photos retain all 29 templates. Brand, ratio and background are retained.

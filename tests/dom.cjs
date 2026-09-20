@@ -15,9 +15,9 @@ const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole:vc,beforeParse
 }});
 (async()=>{const {document}=dom.window,el=id=>document.getElementById(id);
   await new Promise(resolve=>{const until=Date.now()+25000;const poll=()=>!el('export-top').disabled||errors.length||Date.now()>until?resolve():setTimeout(poll,20);poll();});
-  assert.equal(errors.length,0);assert.equal(el('export-top').disabled,false);assert.equal(document.querySelectorAll('.layout').length,29);assert.equal(document.querySelectorAll('.photo').length,4);assert.equal(el('bg-color').value,'#ffffff');
+  assert.equal(errors.length,0);assert.equal(el('export-top').disabled,false);assert.equal(document.querySelectorAll('.layout').length,26);assert.equal(document.querySelectorAll('.photo').length,4);assert.equal(el('bg-color').value,'#ffffff');
   assert.deepEqual([...el('ratio').options].map(x=>x.value),['1:1','4:5']);assert.equal(el('edit-mode'),null);assert.equal(document.querySelector('[data-layout="grid"]').textContent,'經典四格');
-  assert.equal(document.querySelectorAll('.layout-preview').length,29);assert.equal(document.querySelectorAll('.photo img').length,4);assert(el('bg-color'));
+  assert.equal(document.querySelectorAll('.layout-preview').length,26);assert.equal(document.querySelectorAll('.photo img').length,4);assert(el('bg-color'));
   for(const image of document.querySelectorAll('.photo img')){
     const meta=await sharp(Buffer.from(image.src.split(',')[1],'base64')).metadata();
     assert.deepEqual([meta.width,meta.height,meta.format],[96,96,'jpeg'],'Thumbnail must contain a real decodable JPEG');
@@ -29,5 +29,5 @@ const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole:vc,beforeParse
   event('pointerdown',box.x+box.w*.5,box.y+box.h*.5);event('pointermove',box.x+box.w*.5+50,box.y+box.h*.5);event('pointerup',box.x+box.w*.5+50,box.y+box.h*.5);assert.equal(el('undo').disabled,false);
   el('export-top').click();await new Promise((yes,no)=>{const stop=Date.now()+5000;const poll=()=>downloads.length?yes():Date.now()>stop?no(Error(el('status').textContent)):setTimeout(poll,10);poll();});
   const meta=await sharp(downloads.at(-1).bytes).metadata();assert.deepEqual([meta.width,meta.height,meta.format],[1080,1350,'jpeg']);assert.equal(errors.length,0);
-  console.log('PASS: direct social editor UI; 29 visual layouts; only 1:1 and 4:5; drag editing; undo; and 1080x1350 JPG.');
+  console.log('PASS: direct social editor UI; 26 non-overlapping four-photo layouts; only 1:1 and 4:5; drag cropping; undo; and 1080x1350 JPG.');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>dom.window.close());

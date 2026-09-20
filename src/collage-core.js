@@ -48,10 +48,12 @@
     ['cut-grid','可調斜切四格',[[0,0,.5,.5],[.5,0,.5,.5],[0,.5,.5,.5],[.5,.5,.5,.5]]]
   ].map(([id,name,cells,overlap])=>({id,name,cells,overlap:!!overlap,note:id==='cut-grid'?'拖四個端點，共用分界同步改變':'四張原相・可選背景配色'})));
   const clamp = (v, lo=0, hi=1) => Math.min(hi, Math.max(lo,v));
-  // Keep the original four-photo catalogue; other counts get full, gap-free grids.
+  const layoutCache=new Map();
+  // All user-facing structures are non-overlapping. Legacy layouts stay readable.
   function layoutsFor(count){
     if(!Number.isInteger(count)||count<1||count>9)throw new Error('請選擇 1–9 張相片');
-    if(count===4)return layouts;
+    if(count===4)return layouts.filter(l=>!l.overlap);
+    if(layoutCache.has(count))return layoutCache.get(count);
     const make=(kind,name,cells)=>({id:`${kind}-${count}`,name,cells,overlap:false});
     if(count===1)return[make('single','單張全圖',[[0,0,1,1]])];
     const rows=Array.from({length:count},(_,i)=>[0,i/count,1,1/count]);
@@ -63,8 +65,18 @@
       for(let col=0;col<cols;col++)cells.push([col/cols,row/rowCount,1/cols,1/rowCount]);
     }
     const tail=layoutsFor(count-1)[0].cells;
-    return [make('auto','平均排版',cells),make('rows','橫向分格',rows),make('cols','直向分格',columns),
-      make('hero','上大下小',[[0,0,1,.55],...tail.map(([x,y,w,h])=>[x,.55+y*.45,w,h*.45])])];
+    const choices=[make('auto','平均排版',cells),make('rows','橫向分格',rows),make('cols','直向分格',columns)];
+    for(const share of [.4,.55,.7]){
+      const hero=[[0,0,1,share],...tail.map(([x,y,w,h])=>[x,share+y*(1-share),w,h*(1-share)])];
+      const percent=Math.round(share*100);
+      choices.push(make(`hero${percent}`,`上主相 ${percent}%`,hero),
+        make(`bottom${percent}`,`下主相 ${percent}%`,hero.map(([x,y,w,h])=>[x,1-y-h,w,h])),
+        make(`left${percent}`,`左主相 ${percent}%`,hero.map(([x,y,w,h])=>[y,x,h,w])),
+        make(`right${percent}`,`右主相 ${percent}%`,hero.map(([x,y,w,h])=>[1-y-h,x,h,w])));
+    }
+    choices.push(make('transpose','交錯分格',cells.map(([x,y,w,h])=>[y,x,h,w])),make('reverse','反向分格',cells.map(([x,y,w,h])=>[x,1-y-h,w,h])));
+    const seen=new Set(),unique=choices.filter(l=>{const key=l.cells.map(c=>c.map(n=>n.toFixed(5)).join(',')).sort().join(';');if(seen.has(key))return false;seen.add(key);return true});
+    layoutCache.set(count,unique);return unique;
   }
   function layoutById(id){return layouts.find(l=>l.id===id)||Array.from({length:9},(_,i)=>layoutsFor(i+1)).flat().find(l=>l.id===id)||layouts[0]}
   function presetMask(name){
@@ -86,7 +98,21 @@
     const polygons=[[[0,0],[c.top,0],[x,y],[0,c.left]],[[c.top,0],[1,0],[1,c.right],[x,y]],[[0,c.left],[x,y],[c.bottom,1],[0,1]],[[x,y],[1,c.right],[1,1],[c.bottom,1]]];
     return polygons.map(p=>{const xs=p.map(v=>v[0]),ys=p.map(v=>v[1]),x0=Math.min(...xs),y0=Math.min(...ys),bw=Math.max(...xs)-x0,bh=Math.max(...ys)-y0;return {x:a.x+m+x0*(a.w-2*m),y:a.y+m+y0*(a.h-2*m),w:bw*(a.w-2*m),h:bh*(a.h-2*m),angle:0,shape:'polygon',cut:true,mask:{kind:'polygon',points:p.map(([px,py])=>[(px-x0)/bw,(py-y0)/bh])}};});
   }
-  function frameBoxes(state){const available=layoutsFor(state.slots.length),layout=available.find(l=>l.id===state.layout)||available[0];const base=layout.id==='cut-grid'?cutBoxes(state):boxes(layout.id,state.margin,state.gap,photoArea(state));return base.map((b,i)=>{const s=state.slots[i];if(s.frame)b={...b,...s.frame,angle:0};if(s.mask)b={...b,mask:s.mask};return b;});}
+  function slantedBoxes(state,layout){
+    const a=photoArea(state),m=state.margin,w=a.w-2*m,h=a.h-2*m;
+    const sx=clamp(Number(state.slant?.x)||0,-.12,.12),sy=clamp(Number(state.slant?.y)||0,-.12,.12);
+    // Shared edge knots make T junctions deform together, without cracks/overlap.
+    const xs=[...new Set(layout.cells.flatMap(([x,y,w,h])=>[x,x+w]))].sort((a,b)=>a-b);
+    const ys=[...new Set(layout.cells.flatMap(([x,y,w,h])=>[y,y+h]))].sort((a,b)=>a-b);
+    const warp=([x,y])=>[a.x+m+(x+sx*Math.sin(Math.PI*x)*(2*y-1))*w,a.y+m+(y+sy*Math.sin(Math.PI*y)*(2*x-1))*h];
+    return layout.cells.map(([x,y,cw,ch])=>{
+      const xx=xs.filter(v=>v>=x-1e-8&&v<=x+cw+1e-8),yy=ys.filter(v=>v>=y-1e-8&&v<=y+ch+1e-8);
+      const perimeter=[...xx.map(v=>[v,y]),...yy.slice(1).map(v=>[x+cw,v]),...xx.slice(0,-1).reverse().map(v=>[v,y+ch]),...yy.slice(1,-1).reverse().map(v=>[x,v])];
+      const pts=perimeter.map(warp),px=pts.map(p=>p[0]),py=pts.map(p=>p[1]),bx=Math.min(...px),by=Math.min(...py),bw=Math.max(...px)-bx,bh=Math.max(...py)-by;
+      return{x:bx,y:by,w:bw,h:bh,angle:0,shape:'polygon',cut:true,mask:{kind:'polygon',points:pts.map(([x,y])=>[(x-bx)/bw,(y-by)/bh])}};
+    });
+  }
+  function frameBoxes(state){const available=layoutsFor(state.slots.length),layout=layouts.find(l=>l.id===state.layout&&l.cells.length===state.slots.length)||available.find(l=>l.id===state.layout)||available[0];if(state.slots.length>1&&(state.slant?.x||state.slant?.y))return slantedBoxes(state,layout);const base=layout.id==='cut-grid'?cutBoxes(state):boxes(layout.id,state.margin,state.gap,photoArea(state));return base.map((b,i)=>{const s=state.slots[i];if(s.frame)b={...b,...s.frame,angle:0};if(s.mask)b={...b,mask:s.mask};return b;});}
   function boxes(layoutId, margin=16, gap=12,dimensions={x:0,y:0,w:W,h:H}) {
     const {x:ox=0,y:oy=0,w:W,h:H}=dimensions;
     const layout = layoutById(layoutId);
@@ -139,17 +165,25 @@
       else rounded(ctx,b,state.radius);
       ctx.clip();
       if (image) { const g=geometry(image,b,slot); ctx.drawImage(image,g.x,g.y,g.w,g.h); }
-      if(b.cut&&state.gap){ctx.strokeStyle=state.bg;ctx.lineWidth=state.gap;ctx.lineJoin='round';ctx.stroke();}
       if(layoutById(state.layout).overlap&&i>0&&state.gap){ctx.strokeStyle=state.bg;ctx.lineWidth=state.gap*2;ctx.stroke();}
       ctx.restore();
     });
+    // Paint shared gutters after every photo. Stroking inside each clipped image
+    // leaves coloured antialias seams when the neighbouring image is drawn later.
+    if(state.gap){
+      ctx.save();ctx.strokeStyle=state.bg;ctx.lineWidth=state.gap;ctx.lineJoin='round';
+      for(const b of rects)if(b.cut&&b.mask?.kind==='polygon'){
+        ctx.beginPath();b.mask.points.forEach(([x,y],i)=>ctx[i?'lineTo':'moveTo'](b.x+x*b.w,b.y+y*b.h));ctx.closePath();ctx.stroke();
+      }
+      ctx.restore();
+    }
     const brand=root.CollageBrand&&root.CollageBrand.measure({w:W,h:H},state.brand);
     if(brand?.band){ctx.fillStyle='#FFFFFF';ctx.fillRect(brand.band.x,brand.band.y,brand.band.w,brand.band.h);}
     if(brand?.logo){const logo=images[brand.logo.assetId];if(!logo)throw new Error('已選標誌未能讀取');ctx.drawImage(logo,brand.logo.x,brand.logo.y,brand.logo.w,brand.logo.h);}
     ctx.restore(); return rects;
   }
   function defaults() {
-    return { layout:'grid', ratio:'1:1',cut:{top:.5,bottom:.5,left:.5,right:.5},margin:18, gap:12, radius:0, bg:'#FFFFFF', brand:{placement:'none',square:null,wordmark:null,squareSize:.12,wordmarkSize:.24,padding:24}, slots:[
+    return { layout:'grid', ratio:'1:1',slant:{x:0,y:0},cut:{top:.5,bottom:.5,left:.5,right:.5},margin:18, gap:12, radius:0, bg:'#FFFFFF', brand:{placement:'none',square:null,wordmark:null,squareSize:.12,wordmarkSize:.24,padding:24}, slots:[
       {photo:0,x:.52,y:.53,zoom:1}, {photo:1,x:.63,y:.52,zoom:1},
       {photo:2,x:.52,y:.5,zoom:1}, {photo:3,x:.72,y:.56,zoom:1}
     ] };

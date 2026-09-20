@@ -45,9 +45,8 @@ const copy=v=>JSON.parse(JSON.stringify(v));
   const center=()=>[...picture().getContext('2d').getImageData(540,540,1,1).data];assert.deepEqual(center(),[0,255,0,255]);
   pointer('pointerdown',500,500);pointer('pointermove',2500,500);pointer('pointerup',2500,500);assert.deepEqual(center(),[255,0,0,255]);assert.deepEqual(copy(C.frameBoxes(current)),fixed);
   el('undo').click();assert.deepEqual(center(),[0,255,0,255]);
-  el('frame-edit').checked=true;el('frame-edit').dispatchEvent(new window.Event('change'));
   pointer('pointerdown',1042,1042);pointer('pointermove',942,942);pointer('pointerup',942,942);
-  assert.equal(current.slots[0].frame.w,944);el('restore-frames').click();assert.deepEqual(copy(C.frameBoxes(current)),fixed);el('undo').click();assert.equal(current.slots[0].frame.w,944);
+  assert.deepEqual(copy(C.frameBoxes(current)),fixed,'Frame remains fixed even when its corner is dragged');
   // Delay only file I/O; actual decoding and native pixels remain real.
   const Reader=window.FileReader;
   window.FileReader=class extends Reader{readAsDataURL(blob){if(blob.name.startsWith('slow'))window.setTimeout(()=>super.readAsDataURL(blob),30);else super.readAsDataURL(blob)}};
