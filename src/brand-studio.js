@@ -61,7 +61,8 @@
   }
   function bounds(image){const c=doc.createElement('canvas');c.width=image.width;c.height=image.height;const x=c.getContext('2d');x.drawImage(image,0,0);const pixels=x.getImageData(0,0,c.width,c.height).data;let left=c.width,top=c.height,right=-1,bottom=-1;for(let y=0;y<c.height;y++)for(let xx=0;xx<c.width;xx++)if(pixels[(y*c.width+xx)*4+3]>0){left=Math.min(left,xx);top=Math.min(top,y);right=Math.max(right,xx);bottom=Math.max(bottom,y)}if(right<0)throw Error('標誌完全透明，請揀另一個檔案');return{x:left,y:top,w:right-left+1,h:bottom-top+1}}
   async function prepared(asset){
-   // Bound storage and decoded memory without stretching; original files stay untouched.
+   // Bound retained storage/image memory, not the source decoder's peak memory.
+   // Only allocate a small destination canvas; original files stay untouched.
    const scale=Math.min(1,1024/Math.max(asset.width,asset.height)),c=doc.createElement('canvas');c.width=Math.max(1,Math.round(asset.width*scale));c.height=Math.max(1,Math.round(asset.height*scale));c.getContext('2d').drawImage(asset.image,0,0,c.width,c.height);
    const src=c.toDataURL('image/png'),image=await load(src);return{src,image,width:image.width,height:image.height,bounds:bounds(image),name:asset.name.slice(0,80),tone:'any'};
   }
@@ -70,9 +71,11 @@
    if(files.length+library().length>MAX){tell('最多 8 個標誌；未改動現有標誌',true);return}
    if(files.reduce((n,f)=>n+f.size,0)>40*1024*1024){tell('每批標誌請保持 40 MB 以內',true);return}
    const current=++token,before=getState().brand;busy=true;sync();tell('正在讀取標誌…');
-   try{const assets=[];for(const file of files){assets.push(await prepared(await readFile(file,10*1024*1024,4096)));if(current!==token||before!==brand())return}
+   // Large source dimensions are allowed: prepared() normalizes before storage/rendering.
+   // Keep MIME and byte limits in readFile; the legacy picker alone retains its old cap.
+   try{const assets=[];for(const file of files){assets.push(await prepared(await readFile(file,10*1024*1024)));if(current!==token||before!==brand())return}
     mutate(b=>{for(const {image,...a} of assets){const id=images.length;images.push(image);b.library.push({...a,id})}if(b.activeId==null){b.activeId=b.library[0].id;b.placement='corner';b.anchor='tl';b.size=.16;b.surface='none';b.backdropMode='match';b.trim=false}});
-    tell('已加入標誌；點縮圖選用，原比例同顏色保持不變。');
+    tell('已加入標誌；大圖已按比例縮細副本（最長邊 1024px），原檔不變。點縮圖選用。');
    }catch(err){if(current===token)tell(err.message+'；現有標誌未改動',true)}finally{if(current===token){busy=false;sync()}}
   };
   $('logo-hide').onclick=()=>mutate(b=>{if(b.placement==='none')b.placement=['corner','top','bottom'].includes(b.lastPlacement)?b.lastPlacement:'corner';else{b.lastPlacement=b.placement;b.placement='none'}});

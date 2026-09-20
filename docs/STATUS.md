@@ -1,8 +1,15 @@
 # Current local handoff — 2026-09-20
 
-Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/logo-direct-controls`.
+Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/large-logo-import`.
 
-## Current: direct logo sizing and discoverable deletion
+## Current: large logo import fixed and final automated QA
+
+- Reproduced the old failure with an 8192px synthetic logo: the input's 4096px guard rejected it before the existing 1024px normalization could run. Removed that guard from the visible universal library only; MIME validation, 10 MB/file and 40 MB/batch limits remain. Source files are never rewritten, and only normalized PNGs enter artwork history and saved kits.
+- Read-only verification with the user-provided official logo: 18275×8334, 805849 bytes, successfully imported as 1024×467. Source checksum unchanged. Actual portrait JPEG was 1080×1350; deletion/undo and explicit brand saving passed. The source asset and its private path were not added to the repository.
+- `npm run check`: all 28 suites and privacy checks passed. New regression covers both large orientations, proportional size, transparent/color pixels, no small-image upscaling, byte-limit failure preservation, export, delete/undo and normalized persistence. Existing suites cover photo counts/crops/swaps, shared frames/slant, keyboard history, palette, logo corners/backing and direct sizing. `git diff --check` passed.
+- This is final **automated** QA for this fix, not browser/touch acceptance. Original decoding still requires memory; very large sources can exceed low-memory devices. No push, PR or deployment. Download current artwork before refreshing the same `dist/index.html`; editable photo projects are not saved by the brand kit.
+
+## Previous: direct logo sizing and discoverable deletion
 
 - Logo delete/hide and size controls are visible below the selected logo name, outside advanced settings. Canvas logo selection adds its own proportional corner handles and zoom/delete actions above the artwork.
 - Logo hit testing takes precedence over photos. Dragging a logo corner never pans the photo underneath; corner anchoring, optional backing and top/bottom-band reflow continue through the same brand geometry. Corner controls stay inside the canvas when the logo is flush to an edge. An entire drag is one undoable change; pointer cancellation restores it.
