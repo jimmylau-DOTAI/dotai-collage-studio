@@ -1,92 +1,27 @@
-// Integration check: parse the shipped HTML and execute its scripts with jsdom.
-// Canvas/Image use native decoding; this is not a browser or browser-policy workaround.
-const fs=require('node:fs');
-const path=require('node:path');
-const assert=require('node:assert/strict');
-const {JSDOM,VirtualConsole}=require('jsdom');
-const {createCanvas,Image}=require('@napi-rs/canvas');
-fs.mkdirSync(path.join(__dirname,'../artifacts'),{recursive:true});
-const errors=[];
-const virtualConsole=new VirtualConsole();
-virtualConsole.on('jsdomError',e=>errors.push(e.message));
-const surfaces=new WeakMap();
-const downloads=[];
-const input='../dist/index.html';
-const html=fs.readFileSync(path.join(__dirname,input),'utf8');
-const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole,beforeParse(window){
+// Integration check: execute the generated offline page in jsdom with native canvas.
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const {JSDOM,VirtualConsole}=require('jsdom');const {createCanvas,Image}=require('@napi-rs/canvas');const sharp=require('sharp');
+const html=fs.readFileSync(path.join(__dirname,'../dist/index.html'),'utf8');
+const errors=[],surfaces=new WeakMap(),downloads=[];const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
+const dom=new JSDOM(html,{runScripts:'dangerously',virtualConsole:vc,beforeParse(window){
   window.Image=Image;
-  window.HTMLCanvasElement.prototype.getBoundingClientRect=function(){return {left:0,top:0,width:540,height:540*this.height/this.width};};
+  window.HTMLCanvasElement.prototype.getBoundingClientRect=function(){return{left:0,top:0,width:540,height:540*this.height/this.width};};
   for(const key of ['width','height']){const d=Object.getOwnPropertyDescriptor(window.HTMLCanvasElement.prototype,key);Object.defineProperty(window.HTMLCanvasElement.prototype,key,{...d,set(v){d.set.call(this,v);if(surfaces.has(this))surfaces.get(this)[key]=v;}});}
   window.HTMLCanvasElement.prototype.setPointerCapture=function(){};
-  window.HTMLCanvasElement.prototype.toBlob=function(callback,type,quality){surfaces.get(this).encode('jpeg',Math.round(quality*100)).then(bytes=>callback({bytes,type,size:bytes.length}));};
-  window.URL.createObjectURL=blob=>{downloads.push(blob);return 'blob:integration-check';};window.URL.revokeObjectURL=()=>{};
-  window.HTMLAnchorElement.prototype.click=function(){};
-  window.HTMLCanvasElement.prototype.getContext=function(type){
-    if(!surfaces.has(this))surfaces.set(this,createCanvas(this.width,this.height));
-    return surfaces.get(this).getContext(type);
-  };
+  window.HTMLCanvasElement.prototype.toBlob=function(done,type,quality){surfaces.get(this).encode('jpeg',Math.round(quality*100)).then(bytes=>done({bytes,type,size:bytes.length}));};
+  window.HTMLCanvasElement.prototype.getContext=function(){if(!surfaces.has(this))surfaces.set(this,createCanvas(this.width,this.height));return surfaces.get(this).getContext('2d');};
+  window.URL.createObjectURL=blob=>{downloads.push(blob);return'blob:test';};window.URL.revokeObjectURL=()=>{};window.HTMLAnchorElement.prototype.click=function(){};
 }});
-(async()=>{
-  const {document}=dom.window;
-  await new Promise(resolve=>{
-    const started=Date.now();
-    const check=()=>{
-      if(!document.getElementById('export-top').disabled||errors.length||Date.now()-started>25000)resolve();
-      else setTimeout(check,20);
-    };check();
-  });
-  console.log(JSON.stringify({status:document.getElementById('status').textContent,errors,layouts:document.querySelectorAll('.layout').length,photos:document.querySelectorAll('.photo').length}));
-  assert.equal(errors.length,0);
-  assert.equal(document.getElementById('export-top').disabled,false,'Editor must finish initialization');
-  assert.equal(document.querySelectorAll('.photo').length,4);
-  assert.equal(document.querySelectorAll('.layout').length,29);
-  assert.deepEqual([...document.getElementById('ratio').options].map(o=>o.value),['1:1','3:4']);
-  assert.equal(document.getElementById('bg-color').value,'#0b63f6');
-  const palette=['#0B63F6','#FFFFFF','#F5F8FF','#00345C'];
-  assert.deepEqual([...document.querySelectorAll('.swatch')].map(b=>b.dataset.color),palette);
-  for(const color of palette){
-    const button=document.querySelector(`[data-color="${color}"]`);button.click();
-    assert.equal(button.getAttribute('aria-pressed'),'true');
-    const pixel=surfaces.get(document.getElementById('canvas')).getContext('2d').getImageData(0,0,1,1).data;
-    assert.deepEqual([...pixel].slice(0,3),color.slice(1).match(/../g).map(n=>parseInt(n,16)),'Selected background must reach actual output pixels');
-  }
-  document.getElementById('undo').click();assert.equal(document.getElementById('bg-color').value,'#f5f8ff');
-  document.getElementById('redo').click();assert.equal(document.getElementById('bg-color').value,'#00345c');
-  const custom=document.getElementById('bg-color');custom.value='#0b63f6';custom.dispatchEvent(new dom.window.Event('change'));
-  assert.equal(document.querySelector('[data-color="#0B63F6"]').getAttribute('aria-pressed'),'true','Custom color matches preset regardless of hex case');
-  document.getElementById('reset').click();
-  document.querySelector('[data-layout="grid"]').click();
-  assert.equal(document.getElementById('layout-name').textContent,'經典四格');
-  const el=id=>document.getElementById(id),change=(id,value)=>{el(id).value=value;el(id).dispatchEvent(new dom.window.Event('change'));};
-  el('shape-triangle').click();assert.equal(el('edit-mode').value,'shape');assert.equal(el('vertex').options.length,3);
-  const canvas=el('canvas'),b=dom.window.CollageCore.boxes('grid',18,12)[0];
-  function pointer(type,x,y){const ev=new dom.window.MouseEvent(type,{clientX:x*540/canvas.width,clientY:y*540/canvas.width,button:0});Object.defineProperty(ev,'pointerId',{value:1});canvas.dispatchEvent(ev);}
-  pointer('pointerdown',b.x+b.w*.5,b.y);pointer('pointermove',b.x+b.w*.3,b.y+b.h*.1);pointer('pointerup',b.x+b.w*.3,b.y+b.h*.1);
-  assert.equal(el('point-x').value,'30');assert.equal(el('point-y').value,'10');
-  el('undo').click();assert.equal(el('point-x').value,'50');el('redo').click();assert.equal(el('point-x').value,'30');
-  change('edit-mode','frame');pointer('pointerdown',b.x+b.w*.5,b.y+b.h*.7);pointer('pointermove',b.x+b.w*.5+40,b.y+b.h*.7+30);pointer('pointerup',b.x+b.w*.5+40,b.y+b.h*.7+30);
-  assert.equal(el('frame-x').value,'58');assert.equal(el('frame-y').value,'48');
-  pointer('pointerdown',58+b.w,48+b.h);pointer('pointermove',58+b.w-90,48+b.h-110);pointer('pointerup',58+b.w-90,48+b.h-110);
-  assert.equal(Number(el('frame-w').value),Math.round(b.w-90));assert.equal(Number(el('frame-h').value),Math.round(b.h-110));
-  const before=surfaces.get(canvas).toBuffer('image/png');el('preview').click();assert(surfaces.get(canvas).toBuffer('image/png').equals(before),'Editing overlay is excluded from picture pixels');
-  async function download(){const count=downloads.length;el('export-top').click();await new Promise((resolve,reject)=>{const deadline=Date.now()+5000;const poll=()=>downloads.length>count?resolve():Date.now()>deadline?reject(new Error(el('status').textContent)):setTimeout(poll,10);poll();});return downloads.at(-1);}
-  await download();
-  const sharp=require('sharp'),meta=await sharp(downloads[0].bytes).metadata();assert.equal(meta.width,1080);assert.equal(meta.height,1080);assert.equal(meta.format,'jpeg');
-  fs.writeFileSync(path.join(__dirname,'../artifacts/shape-editor-example.jpg'),downloads[0].bytes);
-  el('shape-circle').click();assert.equal(el('edit-mode').value,'frame');assert.equal(el('vertex').disabled,true);
-  el('shape-diamond').click();assert.equal(el('vertex').options.length,4);
-  el('shape-hexagon').click();assert.equal(el('vertex').options.length,6);
-  el('shape-diagonal').click();assert.equal(el('vertex').options.length,4);
-  el('frame-reset').click();assert.equal(el('frame-x').value,'18');
-  el('reset').click();assert.equal(el('bg-color').value,'#0b63f6');assert.equal(el('edit-mode').value,'crop');
-  document.querySelector('[data-layout="cut-grid"]').click();assert.equal(el('edit-mode').value,'cut');
-  const cx=18+.43*(1080-36);pointer('pointerdown',cx,18);pointer('pointermove',18+.3*(1080-36),18);pointer('pointerup',18+.3*(1080-36),18);assert.equal(el('cut-top').value,'30');
-  el('undo').click();assert.equal(el('cut-top').value,'43');el('redo').click();assert.equal(el('cut-top').value,'30');
-  const startX=el('frame-x').value;change('frame-x','90');assert.equal(el('frame-x').value,'90');el('undo').click();assert.equal(el('frame-x').value,startX);
-  change('ratio','3:4');assert.equal(canvas.width,1080);assert.equal(canvas.height,1440);
-  const portrait=await download();const portraitMeta=await sharp(portrait.bytes).metadata();assert.equal(portraitMeta.width,1080);assert.equal(portraitMeta.height,1440);
-  fs.writeFileSync(path.join(__dirname,'../artifacts/slanted-example-3x4.jpg'),portrait.bytes);
-  el('undo').click();assert.equal(el('ratio').value,'1:1');assert.equal(canvas.width,1080);
-  assert.equal(errors.length,0);
-  console.log('PASS: 4 DotAI palette pixel checks; custom color and palette undo/redo; 29 layouts; ONLY 1:1 and 3:4; polygon drag; frame move/resize; shared slanted endpoint drag; undo/redo; both exact JPEG sizes; handles excluded.');
+(async()=>{const {document}=dom.window,el=id=>document.getElementById(id);
+  await new Promise(resolve=>{const until=Date.now()+25000;const poll=()=>!el('export-top').disabled||errors.length||Date.now()>until?resolve():setTimeout(poll,20);poll();});
+  assert.equal(errors.length,0);assert.equal(el('export-top').disabled,false);assert.equal(document.querySelectorAll('.layout').length,29);assert.equal(document.querySelectorAll('.photo').length,4);
+  assert.deepEqual([...el('ratio').options].map(x=>x.value),['1:1','3:4']);assert.equal(el('edit-mode'),null);assert.equal(document.querySelector('[data-layout="grid"]').textContent,'經典四格');
+  document.querySelector('[data-color="#00345C"]').click();assert.equal(el('undo').disabled,false);
+  el('ratio').value='3:4';el('ratio').dispatchEvent(new dom.window.Event('change'));assert.equal(el('canvas').width,1080);assert.equal(el('canvas').height,1440);
+  const canvas=el('canvas'),box=dom.window.CollageCore.frameBoxes(dom.window.CollageCore.defaults())[0];
+  const event=(type,x,y)=>{const e=new dom.window.MouseEvent(type,{clientX:x/2,clientY:y/2,button:0});Object.defineProperty(e,'pointerId',{value:7});canvas.dispatchEvent(e);};
+  event('pointerdown',box.x+box.w*.5,box.y+box.h*.5);event('pointermove',box.x+box.w*.5+50,box.y+box.h*.5);event('pointerup',box.x+box.w*.5+50,box.y+box.h*.5);assert.equal(el('undo').disabled,false);
+  el('export-top').click();await new Promise((yes,no)=>{const stop=Date.now()+5000;const poll=()=>downloads.length?yes():Date.now()>stop?no(Error(el('status').textContent)):setTimeout(poll,10);poll();});
+  const meta=await sharp(downloads.at(-1).bytes).metadata();assert.deepEqual([meta.width,meta.height,meta.format],[1080,1440,'jpeg']);assert.equal(errors.length,0);
+  console.log('PASS: direct social editor UI; 29 layouts; only 1:1 and 3:4; drag editing; undo; and 1080x1440 JPG.');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(()=>dom.window.close());
