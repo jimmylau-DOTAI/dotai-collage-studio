@@ -1,10 +1,12 @@
-# DotAI Collage Studio
+# DotAI Postframe｜拼圖工具
 
 **將幾張活動相，拼成一張可以直接出 IG／Facebook 嘅圖。**
 
 每次活動完，最煩唔係冇相，而係要逐張揀、裁人物、再喺 Canva 慢慢砌版。
 
-所以我整咗 DotAI Collage Studio：揀相、揀排版、將人物拉返去靚嘅位置，然後下載 JPG。全部喺你自己部電腦完成，唔需要上傳相片，亦唔需要開新帳戶。
+所以我整咗 DotAI Postframe：揀相、揀排版、將人物拉返去靚嘅位置，然後下載 JPG。全部喺你自己部電腦完成，唔需要上傳相片，亦唔需要開新帳戶。
+
+> Turn event photos into posts worth sharing.
 
 ## 線上試用
 
