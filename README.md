@@ -6,6 +6,14 @@
 
 所以我整咗 DotAI Collage Studio：揀相、揀排版、將人物拉返去靚嘅位置，然後下載 JPG。全部喺你自己部電腦完成，唔需要上傳相片，亦唔需要開新帳戶。
 
+## 線上試用
+
+GitHub Pages 啟用後，可由以下網址開啟：
+
+`https://jimmylau-dotai.github.io/dotai-collage-studio/`
+
+每次合併至 `main` 後，網站會自動更新。相片只在你的瀏覽器本機處理，不會上傳至此網站。
+
 ## 你可以點用
 
 1. 加入 1–9 張相片。
