@@ -10,7 +10,7 @@
 
 ## 線上試用
 
-GitHub Pages 啟用後，可由以下網址開啟：
+線上版已部署，可由以下網址開啟：
 
 `https://jimmylau-dotai.github.io/dotai-collage-studio/`
 
@@ -40,6 +40,9 @@ GitHub Pages 啟用後，可由以下網址開啟：
 呢個拼圖工具就係一個小例子：由「活動完咗有一堆相」去到「我而家有一張可以出 post 嘅圖」，中間少啲來回、少啲估。
 
 如果你試咗覺得有用，或者有一個你真係想加嘅排版／功能，歡迎開 Issue（PS：喺 GitHub 留低問題或建議）同我講。想一齊改善亦可以開 Pull Request（PS：提交你改好咗嘅程式碼畀我 review）。
+
+- [回報問題／功能建議](https://github.com/jimmylau-DOTAI/dotai-collage-studio/issues/new/choose)
+- [Fork → 開分支 → 測試 → PR：參與方法](CONTRIBUTING.md)
 
 ## 快速開始
 

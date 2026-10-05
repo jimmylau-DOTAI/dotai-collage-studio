@@ -1,0 +1,28 @@
+name: 功能建議
+description: 由你想完成嘅工作出發，提出改善。
+title: "[Feature] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你想完成乜嘢工作？
+      description: 描述使用情境，以及而家邊一步做唔到或唔方便。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建議點樣改善？
+      description: 寫低你希望工具有嘅操作或結果。
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 而家你點處理？
+      description: 可選填；有現成方法或其他解法可以一併講低。
+  - type: markdown
+    attributes:
+      value: |
+        建議會由 maintainer 評估，提交唔代表承諾開發。
+        想自己改可以先喺呢度討論範圍，再 Fork、開分支及提交 PR。

@@ -1,4 +1,19 @@
-# Current local handoff — 2026-09-20
+# Current handoff — 2026-10-05
+
+Owner: Jimmy Lau. Integration: Codex. Current branch: `codex/open-source-maintenance`.
+
+## Current: open-source contribution and release maintenance
+
+- Scope approved on 2026-10-05: make the existing repository's contribution workflow, branch protection and release documentation consistent. Existing application behaviour is unchanged.
+- Base: public `main` at `471f570b222dbaa521fe9db0e8743581affe7cbb`; the Pages run for this commit succeeded. Source scripts, CSS and static page shell were compared with the live page and matched.
+- Changed: `.github/ISSUE_TEMPLATE/` adds bug and feature forms; `CONTRIBUTING.md` explains external Fork/branch/test/PR flow; `README.md` links to feedback and contribution routes. The Pages workflow runs the full product checks before uploading a deployable artifact.
+- Corrected historical deployment wording in `docs/PROVENANCE.md` and `docs/RELEASE-QA.md`. `docs/RELEASE.md` prepares a separately approved first tagged release and records manual acceptance requirements.
+- Validation: `npm run check` passed all 28 suites and privacy checks; YAML/form structure, mandatory check-before-upload/deploy ordering and `git diff --check` passed. No application behaviour changed; this maintenance does not add Chrome/Safari/mobile manual acceptance.
+- Repository settings applied and read back on 2026-10-05: `main` requires PRs and up-to-date GitHub Actions checks `check (22)` / `check (24)`, including administrators; force pushes and deletion are disabled. Required external approval count is zero so the sole maintainer can merge their own reviewed PR; Jimmy still decides when to merge.
+- PR: [#6](https://github.com/jimmylau-DOTAI/dotai-collage-studio/pull/6), awaiting Jimmy's review; its Checks tab records CI for the current head. Implementation commit: `0bcee35`, followed by this handoff readback. No Tag/Release has been published for this maintenance work.
+- Next: present the maintenance PR for Jimmy's review. Product manual acceptance remains pending before the first tagged release.
+
+## Historical local handoff — 2026-09-20
 
 Owner: Jimmy Lau. Integration: Codex. Local branch: `codex/large-logo-import`.
 
