@@ -2,14 +2,21 @@
 
 呢個係公開開源項目，maintainer：Jimmy Lau。
 
+## 點樣參與
+
+- 直接用工具：[線上版](https://jimmylau-dotai.github.io/dotai-collage-studio/)。
+- 回報問題／提功能建議：[開 Issue](https://github.com/jimmylau-DOTAI/dotai-collage-studio/issues/new/choose)。請使用對應表單，交代操作步驟、預期同實際結果。
+- 想修改程式：先 Fork 到自己 GitHub，再 clone 自己嘅 Fork、開分支、修改及測試，最後向本 repo 嘅 `main` 提交 PR。較大功能先用 Issue 討論範圍。
+- 自己使用或分享修改版：依 MIT License 保留版權及授權聲明；DotAI 名稱及 Logo 不構成商標授權。
+
 ## 一個改動，一個 PR
 
-1. 由最新 `main` 開 `codex/<feature>` branch。
-2. 先寫可重現案例／測試，再實作最小改動。
+1. 更新自己 Fork 嘅 `main`，由最新版本開一條具體功能分支；本 repo 嘅 Codex 工作沿用 `codex/<feature>`。
+2. 功能／行為改動先寫可重現案例及適當測試，再實作最小改動；純文件修改核對內容及連結即可。
 3. `npm ci --ignore-scripts`，然後 `npm run check`。
 4. `git diff --check`，逐一檢查要加入嘅檔案。唔用 `git add .` 將未知相片或私人檔一併提交。
 5. 小步 commit；開 PR 寫明目的、測試證據、限制及截圖（只用生成示範圖）。
-6. Review 及 CI 通過後由 owner 決定 merge。唔直接 push 功能到 `main`、唔 force-push、唔自動 deploy。
+6. Review 及 CI 通過後由 Jimmy 決定 merge。唔直接 push 功能到 `main`、唔 force-push。開 PR 本身唔會部署；合併至 `main` 會觸發已批准嘅 GitHub Pages 流程。
 
 ## 驗證準則
 
@@ -22,4 +29,6 @@
 
 ## 發佈界線
 
-唔會將 repo 自動發佈成 npm package 或部署網站。新增公開 asset、改 licence 或建立正式 release 前，先用 Issue／PR 說明來源及權利。見 `docs/PROVENANCE.md`。
+本 repo 唔會自動發佈 npm package 或建立 Tag／Release。新增公開 asset、改 licence 或建立正式 release 前，先用 Issue／PR 說明來源及權利。見 `docs/PROVENANCE.md`。
+
+Pages 只發布通過 `npm run check` 嘅建置；正式 Tag／Release 另按 [`docs/RELEASE.md`](docs/RELEASE.md) 驗收及取得 Jimmy 批准。

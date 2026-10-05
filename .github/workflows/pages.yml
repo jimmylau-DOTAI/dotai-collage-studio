@@ -24,7 +24,9 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: npm run build
+      # Deploy only the standalone editor that passed the full product checks.
+      - run: npm run check
+      - run: git diff --check
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

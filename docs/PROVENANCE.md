@@ -4,7 +4,7 @@
 
 The application grew from Jimmy Lau's local event-photo collage prototype, implemented with AI coding assistance. Only selected text source and test files were migrated into this new repository; the original project history was not imported.
 
-The 29 layout structures were implemented as geometric coordinates with guidance from user-supplied collage reference screenshots. The screenshots, another application's name/logo/UI assets and paid template assets are not included. The visual provenance still needs owner review before public release; this note is not a legal clearance.
+The 29 layout structures were implemented as geometric coordinates with guidance from user-supplied collage reference screenshots. The screenshots, another application's name/logo/UI assets and paid template assets are not included. The public-source review is recorded in the checklist below; this note is not a legal clearance.
 
 ## Assets
 
@@ -29,4 +29,5 @@ Canvas backgrounds remain independent: IG accent `#0B63F6`, white `#FFFFFF`, sof
 - [x] Inspect dependency audit for the shipped form — 0 production vulnerabilities reported on 2026-09-20; build/test dependencies remain development tools.
 - [x] Scan all reachable Git history for credentials, private paths, photos and proprietary documents — no pattern matches on 2026-09-20.
 - [ ] Complete Chrome/Safari/mobile manual acceptance and document known issues. This is still required for UX confidence, not a blocker to publishing source with the known limits disclosed.
-- [ ] Approve a tagged release and any public demo separately; never deploy as a side effect of CI.
+- [x] Public demo approved and deployed separately on 2026-09-21. [PR #4](https://github.com/jimmylau-DOTAI/dotai-collage-studio/pull/4) enabled GitHub Pages; [PR #5](https://github.com/jimmylau-DOTAI/dotai-collage-studio/pull/5) renamed it DotAI Postframe. [Deployment run](https://github.com/jimmylau-DOTAI/dotai-collage-studio/actions/runs/35577934900) succeeded for commit `471f570b222dbaa521fe9db0e8743581affe7cbb`.
+- [ ] Approve a tagged release separately after the applicable acceptance checks. Merging an approved PR to `main` triggers the approved Pages workflow; see `docs/RELEASE.md` for the separate versioned-release procedure.

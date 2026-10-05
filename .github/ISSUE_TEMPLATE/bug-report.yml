@@ -1,0 +1,54 @@
+name: 回報問題
+description: 講清楚操作步驟，方便重現同修正。
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        多謝你幫手改善 DotAI Postframe。請描述你實際遇到嘅問題。
+        截圖可用生成示範圖；請勿提交私人相片、登入資料或其他敏感內容。
+  - type: input
+    id: environment
+    attributes:
+      label: 裝置及瀏覽器
+      description: 例如 Mac / Chrome、iPhone / Safari；知道版本可以一併寫低。
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 使用版本
+      description: 線上網址，或你下載／修改嘅版本或 commit。
+      placeholder: https://jimmylau-dotai.github.io/dotai-collage-studio/
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 點樣重現？
+      description: 逐步寫低由開啟工具到遇到問題嘅操作。
+      placeholder: |
+        1. 加入幾張相片
+        2. 揀某個排版
+        3. 做某個操作後出現問題
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 預期結果
+      description: 你原本以為應該發生乜嘢？
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 實際結果
+      description: 實際發生乜嘢？有錯誤訊息請一併貼上。
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: 補充資料或示範截圖
+      description: 可選填；附檔前請確認唔包含私人資料。

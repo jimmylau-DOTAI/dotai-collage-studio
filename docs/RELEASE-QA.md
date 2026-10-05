@@ -1,5 +1,9 @@
 # Open-source release QA — 2026-09-20
 
+This is the historical source-release QA record. GitHub Pages was approved and
+deployed on 2026-09-21; see `PROVENANCE.md`. A versioned Tag/Release still needs
+the manual acceptance and owner decision described in `RELEASE.md`.
+
 ## Scope
 
 Release candidate: `main` at the commit created from `codex/large-logo-import`.
@@ -24,7 +28,7 @@ repository metadata. It does not represent a hosted website launch.
 
 ## Known limits, deliberately disclosed
 
-- This is an offline HTML editor, not a hosted service. It has no account,
+- This is a standalone browser editor, also served through GitHub Pages. It has no account,
   server, analytics, image upload endpoint, Meta publishing API or ad API.
 - jsdom and native Canvas tests do not prove Chrome, Safari, mobile layout,
   touch gestures, native file picking or browser download prompts. The manual
